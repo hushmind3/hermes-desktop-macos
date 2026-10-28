@@ -1,0 +1,7 @@
+{
+  "app_asset": "Hermes-macos-arm64-20261029.zip",
+  "bytes": 158810285,
+  "sha256": "1188038397c9fe9fd7c2be6e2e7e8c6ff56e3585886bc99979ad2cd43ebd97f2",
+  "architecture": "macOS arm64",
+  "private_repository": "hushmind3/hermes-desktop-macos"
+}

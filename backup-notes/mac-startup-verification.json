@@ -1,0 +1,10 @@
+{
+  "gateway_ready": true,
+  "api_origin": "http://127.0.0.1:51614",
+  "profile_api_http": 200,
+  "changed_config_sections": [],
+  "main_server": "MacBook",
+  "old_homebrew_profile_service_removed": true,
+  "current_default_service_installed": true,
+  "mcp_observation": "Existing Korean group screen and delete confirmation visible; no group deletion performed."
+}

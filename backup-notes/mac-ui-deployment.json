@@ -1,0 +1,44 @@
+{
+  "status": "deployed_next_ui_load",
+  "records": [
+    {
+      "target": "/Users/gim-yeonsu/.hermes/hermes-agent/apps/desktop/dist",
+      "verified_files": 1068,
+      "entry": "assets/index-6_1nmbL3.js",
+      "feature_modules": {
+        "groups.model": [
+          "index-6_1nmbL3.js"
+        ],
+        "groups.disband": [
+          "index-6_1nmbL3.js"
+        ],
+        "deleteGroupDescription": [
+          "profile-ops-CX93eric.js",
+          "index-6_1nmbL3.js"
+        ]
+      }
+    },
+    {
+      "target": "/Users/gim-yeonsu/.hermes/hermes-agent/apps/desktop/release/mac-arm64/Hermes.app/Contents/Resources/app.asar.unpacked/dist",
+      "verified_files": 1068,
+      "entry": "assets/index-6_1nmbL3.js",
+      "feature_modules": {
+        "groups.model": [
+          "index-6_1nmbL3.js"
+        ],
+        "groups.disband": [
+          "index-6_1nmbL3.js"
+        ],
+        "deleteGroupDescription": [
+          "profile-ops-CX93eric.js",
+          "index-6_1nmbL3.js"
+        ]
+      }
+    }
+  ],
+  "frontend_typecheck": "passed",
+  "ui_tests": "55 passed",
+  "existing_groups_deleted": false,
+  "main_gateway_unchanged": true,
+  "packaged_renderer_resolution": "Packaged main resolveRendererIndexWithMissing prefers resolveWebDist over in-archive dist; deployed complete manifest generation verified."
+}
