@@ -168,6 +168,18 @@ class HostedRoomPolicyCheckpoint:
         events_by_seq = {
             int(event["seq"]): event
             for event in (*map(_event_from_room_row, rows), *(json.loads(row["event_json"]) for row in active_rows))}
+        # Retained settlements still need their source user event for policy validation.
+        # Message-count trimming can evict that source before its later member replies.
+        present_ids = {event["event_id"] for event in events_by_seq.values()}
+        source_ids = {str(event["payload"]["discussion_event_id"])
+                      for event in events_by_seq.values() if event["kind"] == "turn.settled"}
+        for source_id in sorted(source_ids - present_ids):
+            source = conn.execute(
+                f"SELECT {_ROOM_EVENT_COLUMNS} FROM hosted_room_events WHERE room_id=? AND event_id=? AND kind='message.user'",
+                (room_id, source_id)).fetchone()
+            if source is not None:
+                event = _event_from_room_row(source)
+                events_by_seq[int(event["seq"])] = event
         return [events_by_seq[seq] for seq in sorted(events_by_seq)]
 
     # -- per-kind projection handlers (dispatched by _apply_event) -----------
