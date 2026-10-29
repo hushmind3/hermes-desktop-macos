@@ -139,7 +139,6 @@ import sys
 from pathlib import Path as _Path
 sys.path.insert(0, str(_Path(__file__).resolve().parents[3]))
 
-from gateway.authz_mixin import _coerce_allow_set
 from agent.i18n import get_language, t
 from gateway.config import Platform, PlatformConfig
 from gateway.platforms.base import (
@@ -949,58 +948,8 @@ class TelegramAdapter(TelegramHeldInboundMixin, TelegramTopicRoutingMixin, BaseP
         return str(extra.get("unauthorized_dm_behavior", "")).strip().lower() in ("pair", "decline")
 
     def _is_user_authorized_from_message(self, message: Message) -> bool:
-        """Intake auth prefilter, run BEFORE batching/event construction/group observation.
-
-        Only rejects when it can make the same context-aware decision the runner would; unknown DMs pass through when
-        there is no allowlist or pairing is the unauthorized-DM behavior."""
-        source = self._source_from_message_for_auth(message)
-        user_id = source.user_id
-        # No identity → service message or channel post without sender_chat; defer to message gating.
-        if not user_id:
-            return True
-        authorized: Optional[bool] = None
-        # Adapter-level allow_from (DMs) / group_allow_from (groups) are the sole authority if set.
-        adapter_allow_from = self.config.extra.get(
-            "group_allow_from" if (source.chat_type or "") in ("group", "forum", "channel") else "allow_from")
-        if adapter_allow_from is not None:
-            allowed = _coerce_allow_set(adapter_allow_from)
-            authorized = user_id in allowed or "*" in allowed
-        # Instance-level override only (tests): the class method _is_callback_user_authorized is for
-        # inline buttons and must not become a user-id-only shortcut for real messages.
-        if authorized is None:
-            callback_auth = self.__dict__.get("_is_callback_user_authorized")
-            if callable(callback_auth):
-                with contextlib.suppress(Exception):
-                    authorized = bool(callback_auth(
-                        user_id, chat_id=source.chat_id, chat_type=source.chat_type, thread_id=source.thread_id,
-                        user_name=source.user_name))
-        if authorized is None:
-            # Runner's full auth chain; prefer the set_authorization_check callback (survives multiplex
-            # handler wrapping, unlike bound-handler __self__).
-            auth_fn = self._legacy_runner_auth_fn()
-            has_callback = getattr(self, "_authorization_check", None) is not None
-            if has_callback or auth_fn is not None:
-                # No allowlist → unknown DMs must reach pairing, not be default-denied here.
-                if not self._telegram_auth_env_configured():
-                    return True
-                decision = self._is_sender_authorized(
-                    user_id, chat_type=source.chat_type, chat_id=source.chat_id, is_bot=source.is_bot,
-                    thread_id=source.thread_id) if has_callback else None
-                if decision is not None:
-                    authorized = decision
-                elif auth_fn is not None:
-                    try:
-                        authorized = bool(auth_fn(source))
-                    except Exception:
-                        logger.debug("[Telegram] Falling back to env-only auth for user %s", user_id, exc_info=True)
-        if authorized is None:
-            authorized = self._env_allowlist_decision(user_id)
-            if authorized is None:
-                return True
-        if authorized:
-            return True
-        # Unauthorized DM the gateway would pair: forward so pairing can run.
-        return self._should_pass_unauthorized_dm_for_pairing(source)
+        from plugins.platforms.telegram.group_policy import message_user_authorized
+        return message_user_authorized(self, message)
 
     @classmethod
     def _metadata_thread_id(cls, metadata: Optional[dict[str, Any]]) -> Optional[str]:
@@ -7133,6 +7082,8 @@ class TelegramAdapter(TelegramHeldInboundMixin, TelegramTopicRoutingMixin, BaseP
             user_id=(str(user.id) if user else (str(chat.id) if chat_type in {"dm", "channel"} else None)),
             user_name=user_name, thread_id=thread_id_str, chat_topic=chat_topic, message_id=str(message.message_id),
             is_bot=bool(getattr(user, "is_bot", False)) if user else False)
+        from plugins.platforms.telegram.group_policy import local_group_bot_authorized
+        source.role_authorized = local_group_bot_authorized(self, source)
         reply_to_id, reply_to_text = self._reply_context(message)
         from gateway.platforms.base import resolve_channel_prompt  # per-channel/topic ephemeral prompt
         from plugins.platforms.telegram.telegram_context import group_identity_prompt
@@ -7143,7 +7094,8 @@ class TelegramAdapter(TelegramHeldInboundMixin, TelegramTopicRoutingMixin, BaseP
             message_id=str(message.message_id), platform_update_id=update_id,
             reply_to_message_id=reply_to_id, reply_to_text=reply_to_text, auto_skill=topic_skill,
             channel_prompt=group_identity_prompt(self, message, channel_prompt),
-            edit_revision=self._edit_revision(message, update_id), timestamp=message.date)
+            edit_revision=self._edit_revision(message, update_id), timestamp=message.date,
+            reply_expected=False if source.role_authorized else None)
 
     @staticmethod
     def _edit_revision(message, update_id: Optional[int]) -> Optional[str]:

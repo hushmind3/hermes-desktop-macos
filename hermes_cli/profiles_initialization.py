@@ -57,6 +57,8 @@ def finish_profile_layout(profile_dir: Path, *, no_skills: bool, clone_all: bool
     # profile is v0/outdated; --clone-all snapshots stay byte-for-byte apart from the
     # explicit runtime/history stripping above.
     if not clone_all:
+        from hermes_cli.profile_group_seed import seed_profile_group_preferences
+        seed_profile_group_preferences(profile_dir)
         with contextlib.suppress(Exception):  # optional preference must not block a usable profile
             seed_profile_language(profile_dir)
         _migrate_profile_config_if_outdated(profile_dir)

@@ -647,7 +647,22 @@ Hermes Agent works in Telegram group chats with a few considerations:
 
 ### Multiple Hermes bots in one group
 
-If you run several Hermes profiles in the same Telegram group, create one Telegram bot token per profile and start one gateway per profile. Do not reuse the same bot token in multiple running gateways; Telegram will reject concurrent polling for the same token.
+For mention-free conversation between bots owned by the same Hermes installation, set
+`telegram.require_mention: false`, `telegram.bots_require_mention: false`, and
+`telegram.extra.local_bot_group_chat: true`. Telegram's Bot-to-Bot Communication Mode
+must also be enabled in BotFather, with group privacy disabled or the bots promoted to admins.
+This opt-in recognizes live local profiles' Telegram bot IDs, including credentials connected
+after another bot started. It does not grant unknown bots or bot-authored DMs access. Keep
+`telegram.group_allow_from` limited to the human participants you authorize, and keep
+`gateway.bot_loop_guard.enabled: true` to bound bot-to-bot replies. Bots may stay silent
+when another bot's message adds nothing to answer.
+
+When this opt-in is enabled in the default profile, newly created profiles receive its group
+trigger preferences, group sender list and bot loop budget. Tokens and other channel settings
+are not copied, and explicit choices in the new profile are preserved. The messaging gateway
+serves these profiles together; each profile still needs its own Telegram bot token.
+
+If you run several Hermes profiles in the same Telegram group, create one Telegram bot token per profile. One multiplex gateway serves the profiles together. Do not reuse the same bot token in multiple running gateways; Telegram will reject concurrent polling for the same token.
 
 Recommended group config:
 
@@ -679,21 +694,16 @@ Group conversation text and media captions keep every mention when the message n
 
 Set `exclusive_bot_mentions: false` only for legacy groups where explicit mentions should not override reply and wake-word triggers.
 
-To operate several profiles, run the gateway command once per profile. For example:
+Manage the multiplex gateway from the default profile:
 
 ```bash
-# default profile
-hermes gateway start
-hermes gateway status
-hermes gateway stop
-
-# named profiles
-hermes -p research gateway start
-hermes -p research gateway status
-hermes -p research gateway stop
+hermes -p default gateway start
+hermes -p default gateway status
+hermes -p default gateway stop
 ```
 
-For a small fixed fleet, use a shell loop or script that calls `hermes gateway <action>` for the default profile and `hermes -p <profile> gateway <action>` for each named profile. This is more reliable than assuming a single process-level command controls every named profile on every service manager.
+An older installation with separate per-profile services can migrate with
+`hermes -p default gateway migrate --multiplex`.
 
 ### Troubleshooting: works in DMs but not groups
 

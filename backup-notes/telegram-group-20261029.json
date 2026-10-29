@@ -1,0 +1,20 @@
+{
+  "behavior": "Mention-free local Telegram bot group conversations; defaults seeded on profile creation; live local bot ID recognition",
+  "validation": {
+    "telegram_tests_passed": 54,
+    "existing_profile_tests_passed": 105,
+    "existing_profile_tests_skipped": 6
+  },
+  "config_values": {
+    "require_mention": false,
+    "bots_require_mention": false,
+    "extra.local_bot_group_chat": true,
+    "bot_loop_guard": {
+      "enabled": true,
+      "max_events": 3,
+      "window_seconds": 60,
+      "cooldown_seconds": 60
+    }
+  },
+  "runtime_config_included": false
+}
