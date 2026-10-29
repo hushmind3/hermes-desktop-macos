@@ -1652,7 +1652,6 @@ DEFAULT_CONFIG = {
             # set True on an unaffected client to get native rich tables for CJK.
             "allow_cjk_rich_messages": False,
             "dm_topic_auto_transfer": False,  # /topic mode: root-DM message opens a fresh topic
-            "local_bot_group_chat": False,  # opt in to group conversation with this install's Telegram bots
         },
     },
 

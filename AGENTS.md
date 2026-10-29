@@ -1,5 +1,15 @@
 # Hermes Agent - Development Guide
 
+## 사용자 지정 변경 범위 — 모든 하위 작업에 적용
+
+- 사용자가 명시적으로 요청한 범위만 수행한다. 요청하지 않은 기능, 정책, 보조 서비스,
+  별도 대화 엔진을 임의로 구현하거나 기존 동작을 확대하지 않는다.
+- 먼저 기존 코드와 지원되는 설정으로 해결할 수 있는지 확인한다. 이미 있는 기능을
+  중복 구현하지 않는다.
+- 헤르메스 원본과 이미 정상 동작하는 기능을 요청 범위 밖에서 변경하지 않는다.
+  새 구현이나 구조 변경이 필요하다면 이유와 구체적인 변경 범위를 먼저 설명하고,
+  사용자가 동의한 뒤에만 진행한다.
+
 For AI coding assistants and developers working on hermes-agent. This root file is a hub: what
 applies everywhere, then a routing table. Each area's `AGENTS.md` loads automatically when you work
 in that directory; read it before editing there. `python scripts/check` caps this file at 12k chars

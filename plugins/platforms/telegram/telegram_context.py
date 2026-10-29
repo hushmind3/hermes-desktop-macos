@@ -50,13 +50,4 @@ def group_identity_prompt(
         f"Your Telegram bot username in this group: @{username}. "
         "Mentions of other bots are not requests for you to relay the message."
     )
-    if adapter.config.extra.get("local_bot_group_chat") is True:
-        identity += (
-            "\nThis is a shared group conversation. Reply in Korean without requiring @handles. "
-            "When the human addresses everyone, give your own concise answer. When they name "
-            "another participant, let that participant answer. Engage with another bot only "
-            "to add a useful new point or answer a question directed at you; avoid repeated "
-            "greetings, acknowledgements and circular follow-up questions. If another bot's "
-            "message needs no reply from you, return exactly [SILENT]."
-        )
     return f"{channel_prompt}\n\n{identity}" if channel_prompt else identity
