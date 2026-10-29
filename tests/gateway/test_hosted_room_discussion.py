@@ -792,3 +792,51 @@ def test_malformed_log_and_task_reconstruction_fail_closed(
             malformed,
             local_profiles=LOCAL_PROFILES,
         )
+
+
+def test_telegram_addressed_peer_answers_before_remaining_first_round(room_db):
+    db, room = room_db
+    _append_user(db, event_id='telegram-user', text='Discuss.', thread_id='telegram')
+    assert _settle_next(room, db, text='@build what do you think?').member.profile == 'research'
+    assert _settle_next(room, db, text='@research here is my objection.').member.profile == 'build'
+    reply = _next_task(room, db)
+    assert reply.member.profile == 'research'
+    assert reply.round_index == 1
+    assert '@research here is my objection.' in reply.payload['prompt']
+
+
+def test_telegram_pass_consumes_address_and_resumes_roster(room_db):
+    db, room = room_db
+    _append_user(db, event_id='telegram-user', text='Discuss.', thread_id='telegram')
+    _settle_next(room, db, text='@build your thoughts?')
+    _settle_next(room, db, text='@research do you agree?')
+    assert _settle_next(room, db, text='(pass)').member.profile == 'research'
+    assert _next_task(room, db).member.profile == 'review'
+
+
+def test_telegram_directed_exchange_keeps_three_turn_cap(room_db):
+    db, room = room_db
+    _append_user(db, event_id='telegram-user', text='Discuss.', thread_id='telegram')
+    speakers = []
+    for index in range(6):
+        task = _next_task(room, db)
+        speakers.append(task.member.profile)
+        peer = 'build' if task.member.profile == 'research' else 'research'
+        _settle_next(room, db, text=f'Reply {index}. @{peer}')
+    assert speakers == ['research', 'build'] * 3
+    assert _next_task(room, db).member.profile == 'review'
+
+
+def test_desktop_address_does_not_preempt_first_round(room_db):
+    db, room = room_db
+    _append_user(db, event_id='desktop-user', text='Discuss.')
+    _settle_next(room, db, text='@review please answer me.')
+    assert _next_task(room, db).member.profile == 'build'
+
+
+def test_telegram_latest_question_preempts_an_older_unanswered_address(room_db):
+    db, room = room_db
+    _append_user(db, event_id='telegram-user', text='Discuss.', thread_id='telegram')
+    _settle_next(room, db, text='@build and @review please comment.')
+    assert _settle_next(room, db, text='@research answer this first.').member.profile == 'build'
+    assert _next_task(room, db).member.profile == 'research'

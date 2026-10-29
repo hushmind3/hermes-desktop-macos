@@ -710,6 +710,38 @@ def plan_next_task(
         (int(event.payload["round_index"]), str(event.payload["member_id"])) for event in validated
         if event.kind in _TERMINAL_EVENT_KINDS and event.payload.get("discussion_event_id") == discussion.event_id}
     watermarks = _effective_watermarks(validated, initial_watermarks)
+
+    def member_turn(member: DiscussionMember, member_index: int, round_index: int):
+        watermark = watermarks.get((thread_id, member.member_id), 0)
+        delta, attachments = _bounded_task_delta(thread_messages, watermark=watermark, member=member)
+        if not delta or ((round_index, member.member_id) in terminals and not attachments):
+            return None
+        seen_through_seq = delta[-1].seq
+        prompt = _build_prompt(
+            room=room, member=member, messages=thread_messages, watermark=watermark,
+            seen_through_seq=seen_through_seq)
+        return decide("task", "member_turn", task=_make_task_plan(
+            room=room, discussion_event=discussion, member=member, member_index=member_index,
+            round_index=round_index, seen_through_seq=seen_through_seq, prompt=prompt, attachments=attachments,
+            input_context=(validate_task_input({"watermark": watermark, "event_seqs": [event.seq for event in delta]})
+                if freeze_input_context or attachments else None)))
+
+    # The Telegram bridge uses this thread. Keep Desktop round ordering unchanged.
+    # The most recent unanswered peer address takes precedence over the roster queue.
+    if thread_id == "telegram":
+        for event in reversed(discussion_messages):
+            if event.kind != "message.member":
+                continue
+            for member in resolve_mentions((str(event.payload["text"]),), room.members, default_all=False):
+                if (member.member_id == event.payload["member_id"]
+                        or watermarks.get((thread_id, member.member_id), 0) >= event.seq):
+                    continue
+                slot = next((index for index in range(MAX_DISCUSSION_ROUNDS)
+                             if (index, member.member_id) not in terminals), None)
+                if slot is not None:
+                    turn = member_turn(member, room.members.index(member), slot)
+                    if turn is not None:
+                        return turn
     for round_index in range(MAX_DISCUSSION_ROUNDS):
         # The user's message selects the first round, with no mention meaning
         # everyone. Later rounds are opt-in: only a peer explicitly cited by a
@@ -720,19 +752,8 @@ def plan_next_task(
             resolve_mentions((str(discussion.payload["text"]),), room.members) if round_index == 0
             else _unaddressed_member_mentions(discussion_messages, room))
         for member_index, member in enumerate(_rotate(responders, round_index)):
-            watermark = watermarks.get((thread_id, member.member_id), 0)
-            delta, attachments = _bounded_task_delta(thread_messages, watermark=watermark, member=member)
-            if not delta or ((round_index, member.member_id) in terminals and not attachments):
-                continue
-            seen_through_seq = delta[-1].seq
-            prompt = _build_prompt(
-                room=room, member=member, messages=thread_messages, watermark=watermark,
-                seen_through_seq=seen_through_seq)
-            return decide("task", "member_turn", task=_make_task_plan(
-                room=room, discussion_event=discussion, member=member, member_index=member_index,
-                round_index=round_index, seen_through_seq=seen_through_seq, prompt=prompt, attachments=attachments,
-                input_context=(validate_task_input({"watermark": watermark, "event_seqs": [event.seq for event in delta]})
-                    if freeze_input_context or attachments else None)))
+            if (turn := member_turn(member, member_index, round_index)) is not None:
+                return turn
         if not any(int(event.payload["round_index"]) == round_index for event in member_messages):
             return decide("settled", "silent_round")
         if round_index == MAX_DISCUSSION_ROUNDS - 1:
