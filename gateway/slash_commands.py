@@ -914,7 +914,11 @@ class GatewaySlashCommandsMixin(
         out = handle_pending_subcommand(
             wa.MEMORY, event.get_command_args().strip().split(), memory_store=load_on_disk_store(),
             set_mode_fn=self._write_approval_setter("memory", event))
-        return out if out is not None else t("gateway.memory.unknown_subcommand")
+        if out is None:
+            return t("gateway.memory.unknown_subcommand")
+        from hermes_cli.write_approval_display import korean_review_output
+        return await asyncio.to_thread(
+            korean_review_output, out, wa.MEMORY, event.get_command_args().strip().split())
 
     async def _handle_skills_command(self, event: MessageEvent) -> str:
         """Handle /skills on the gateway — pending skill-write review only (hub stays CLI-only). Gated
@@ -937,7 +941,8 @@ class GatewaySlashCommandsMixin(
         if sub == "diff" and len(out) > 3000:
             pending_id = args[1] if len(args) > 1 else "<id>"
             out = out[:3000] + t("gateway.skills.diff_truncated", pending_id=pending_id)
-        return out
+        from hermes_cli.write_approval_display import korean_review_output
+        return await asyncio.to_thread(korean_review_output, out, wa.SKILLS, args)
 
     async def _handle_approvals_command(self, event: MessageEvent) -> str:
         """Show or persist the profile-wide dangerous-command approval mode."""
