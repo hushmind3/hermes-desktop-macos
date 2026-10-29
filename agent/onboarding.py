@@ -71,8 +71,20 @@ _BUSY_INPUT_HINT_CLI_DEFAULT = (
 )
 
 
+_BUSY_INPUT_HINTS_GATEWAY_KO = {
+    'queue': '💡 처음 한 번 안내 — 진행 중인 작업을 중단하지 않고 메시지를 대기열에 넣었어요. 새 메시지가 현재 작업을 즉시 중단하게 하려면 `/busy interrupt`, 현재 설정을 확인하려면 `/busy status`를 보내세요. 이 안내는 다시 표시되지 않아요.',
+    'steer': '💡 처음 한 번 안내 — 현재 작업을 중단하지 않고 새 메시지를 반영했어요. 다음 도구 실행이 끝난 뒤 전달돼요. 방식을 바꾸려면 `/busy interrupt` 또는 `/busy queue`, 설정 확인은 `/busy status`를 보내세요. 이 안내는 다시 표시되지 않아요.',
+    'redirect': '💡 처음 한 번 안내 — 새 메시지에 맞춰 진행 중인 작업의 방향을 바꿨어요. 이미 수행한 내용은 유지되며, `/stop`으로 작업을 취소할 수 있어요. 새 메시지를 별도 차례로 대기시키려면 `/busy queue`, 설정을 확인하려면 `/busy status`를 보내세요. 이 안내는 다시 표시되지 않아요.',
+    'interrupt': '💡 처음 한 번 안내 — 새 메시지에 답하기 위해 진행 중인 작업을 중단했어요. 후속 메시지를 다음 차례로 대기시키려면 `/busy queue`, 작업을 중단하지 않고 중간에 전달하려면 `/busy steer`, 설정을 확인하려면 `/busy status`를 보내세요. 이 안내는 다시 표시되지 않아요.',
+}
+_TOOL_PROGRESS_HINT_GATEWAY_KO = '💡 처음 한 번 안내 — 도구 실행이 길어져 진행 단계를 표시하고 있어요. 알림이 너무 많으면 `/verbose`로 표시 방식을 바꿀 수 있어요(전체 → 새 단계 → 끄기). 이 안내는 다시 표시되지 않아요.'
+
+
 def busy_input_hint_gateway(mode: str) -> str:
     """Hint shown the first time a user messages while the agent is busy (markdown)."""
+    from agent.i18n import get_language
+    if get_language() == "ko":
+        return _BUSY_INPUT_HINTS_GATEWAY_KO.get(mode, _BUSY_INPUT_HINTS_GATEWAY_KO["interrupt"])
     return _BUSY_INPUT_HINTS_GATEWAY.get(mode, _BUSY_INPUT_HINT_GATEWAY_DEFAULT)
 
 
@@ -82,6 +94,9 @@ def busy_input_hint_cli(mode: str) -> str:
 
 
 def tool_progress_hint_gateway() -> str:
+    from agent.i18n import get_language
+    if get_language() == "ko":
+        return _TOOL_PROGRESS_HINT_GATEWAY_KO
     return ("💡 First-time tip — that tool took a while and I'm streaming every step. If the progress messages "
             "feel noisy, send `/verbose` to cycle modes (all → new → off). This notice won't appear again.")
 

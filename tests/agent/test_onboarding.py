@@ -154,3 +154,23 @@ class TestFirstContactTurnNote:
             is None
         )
         assert not cfg_path.exists()
+
+
+def test_gateway_first_touch_hints_follow_korean_language(monkeypatch):
+    from agent.onboarding import busy_input_hint_gateway, tool_progress_hint_gateway
+    monkeypatch.setenv('HERMES_LANGUAGE','ko')
+    for mode in ['queue','steer','redirect','interrupt']:
+        hint=busy_input_hint_gateway(mode)
+        assert '처음 한 번 안내' in hint
+        assert 'First-time tip' not in hint
+        assert '/busy' in hint
+    assert '/stop' in busy_input_hint_gateway('redirect')
+    assert '/verbose' in tool_progress_hint_gateway()
+    assert '처음 한 번 안내' in tool_progress_hint_gateway()
+
+
+def test_gateway_english_hint_keeps_existing_meaning(monkeypatch):
+    from agent.onboarding import busy_input_hint_gateway
+    monkeypatch.setenv('HERMES_LANGUAGE','en')
+    assert 'Completed work stays in context' in busy_input_hint_gateway('redirect')
+    assert busy_input_hint_gateway('unknown')==busy_input_hint_gateway('interrupt')
