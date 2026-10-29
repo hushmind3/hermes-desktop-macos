@@ -100,6 +100,16 @@ def register(ctx):
     def factory(native, adapter):
         nonlocal watcher, bridge
         from telegram.ext import MessageHandler, filters
+        human_rooms = {str(value) for value in settings.get("human_only_chat_ids", [])}
+        if human_rooms:
+            class HumanRoomBotFilter(filters.MessageFilter):
+                def filter(self, message):
+                    user = getattr(message, "from_user", None)
+                    return (str(message.chat.id) in human_rooms
+                            and user is not None and bool(user.is_bot))
+            async def ignore_bot(update, context):
+                return
+            native.add_handler(MessageHandler(HumanRoomBotFilter(), ignore_bot))
         ingress = getattr(adapter, "_owner_profile", None) == settings["ingress_profile"]
         if ingress and bridge is None:
             bridge = Bridge(settings, root)
