@@ -1,0 +1,11 @@
+{
+  "nine_profile_configs_and_personas": "matched",
+  "nine_plugin_links": "rebound to restored home",
+  "sqlite_integrity_databases": 32,
+  "session_message_counts": "matched archive",
+  "source_snapshot_commit": "matched",
+  "wrong_key": "rejected before decryption",
+  "zip_crc": "passed",
+  "apps_and_models": "excluded",
+  "fresh_machine_installation": "not executed; source restoration tested in isolated folder"
+}

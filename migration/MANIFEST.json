@@ -1,0 +1,14 @@
+{
+  "format": 1,
+  "cipher": "AES-256-CBC + PBKDF2-SHA256 (600000 iterations) + encrypt-then-HMAC-SHA256",
+  "ciphertext_hmac_sha256": "a0df125d51ef41583ce510f459fab116fa2385775fbff6b2280b751fbd75f1e0",
+  "parts": [
+    {
+      "name": "hermes-migration.enc.part001",
+      "bytes": 354560032,
+      "sha256": "8fe5c27a95032ab1817b52b24475c3d9a592df42d8bd15d3738b79bee04e35c0"
+    }
+  ],
+  "models_included": false,
+  "apps_or_runtimes_included": false
+}
