@@ -1,0 +1,16 @@
+{
+  "enabled": false,
+  "chat_id": "YOUR_GROUP_ID",
+  "room_id": "YOUR_DEDICATED_ROOM_ID",
+  "owner_id": "YOUR_USER_ID",
+  "ingress_profile": "sebas",
+  "members": [
+    "shalltear",
+    "aura",
+    "albedo",
+    "pandora-actor",
+    "cocytus",
+    "demiurge"
+  ],
+  "cursor": 0
+}

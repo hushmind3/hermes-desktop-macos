@@ -1,0 +1,4 @@
+name: telegram-room-bridge
+version: 0.1.0
+description: Relay one Telegram group through the existing Hermes hosted Group Chat engine.
+author: local

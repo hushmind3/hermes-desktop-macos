@@ -582,10 +582,6 @@ class TelegramAdapter(TelegramHeldInboundMixin, TelegramTopicRoutingMixin, BaseP
         """Telegram measures message length in UTF-16 code units."""
         return utf16_len
 
-    async def _process_message_background(self, event: MessageEvent, session_key: str) -> None:
-        from plugins.platforms.telegram.telegram_context import process_group_turn_serially
-        await process_group_turn_serially(self, event, session_key, super()._process_message_background)
-
     def __init__(self, config: PlatformConfig):
         super().__init__(config, Platform.TELEGRAM)
         extra = self.config.extra

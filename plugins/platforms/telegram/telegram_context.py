@@ -4,31 +4,7 @@ The identity line lives in ``channel_prompt`` and therefore in the cached-agent 
 must be stable for the life of a session (username only — never a per-message fact).
 """
 
-import asyncio
-from weakref import WeakKeyDictionary
 from typing import TYPE_CHECKING, Optional
-
-_group_turn_locks = WeakKeyDictionary()
-
-
-async def process_group_turn_serially(adapter, event, session_key, process):
-    """Share one generation-and-delivery lane across this host's bots in a group."""
-    if event.source.chat_type not in {"group", "forum"}:
-        return await process(event, session_key)
-    from hermes_constants import get_default_hermes_root
-    locks = _group_turn_locks.setdefault(asyncio.get_running_loop(), {})
-    key = (str(get_default_hermes_root()), str(event.source.chat_id))
-    lock = locks.setdefault(key, asyncio.Lock())
-    guard = adapter._active_sessions.get(session_key)
-    entered = False
-    try:
-        async with lock:
-            entered = True
-            return await process(event, session_key)
-    finally:
-        if not entered:
-            # A stopped waiter never enters BasePlatformAdapter's lifecycle/finally.
-            adapter._cleanup_finished_session_task(session_key, guard)
 
 if TYPE_CHECKING:
     from telegram import Message
