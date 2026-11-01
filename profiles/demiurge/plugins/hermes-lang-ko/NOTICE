@@ -1,0 +1,11 @@
+hermes-lang-ko
+
+The Korean strings in locales/ko.desktop.yaml are an independent translation by
+Dante Labs, prepared with AI assistance from the English Desktop catalog of
+NousResearch/hermes-agent (MIT License). The key names and the English source
+text they translate belong to hermes-agent.
+
+Releases up to and including 0.1.1 were instead generated from the Korean Desktop
+catalog proposed in NousResearch/hermes-agent pull request #40716 by @dalgme and
+contributors (MIT License). Those releases keep that attribution. Starting with
+0.2.0, no strings from that catalog are included.

@@ -1,0 +1,3 @@
+# Core strings come from the ko.yaml bundled with Hermes.
+# This pack only adds Desktop strings (ko.desktop.yaml); keep this file empty.
+{}
