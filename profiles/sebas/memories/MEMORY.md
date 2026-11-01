@@ -1,0 +1,5 @@
+The demiurge profile's personal Telegram bot is @yeonsu_demiurge_bot; its configured home DM is 7094091589. Bot credentials are stored in the profile's .env; do not duplicate credential values in memory.
+§
+Hermes Telegram bot-to-bot: `TELEGRAM_ALLOW_BOTS=mentions` or `all` admits bot-authored messages (unset/none blocks); set per participating bot profile. `mentions` is preferred for explicit @mention-based interaction; BotFather Bot-to-Bot Communication Mode must also be enabled. Watch for reply loops.
+§
+Search behavior: user wants all available search tools used when searching, not just one. Use current date as baseline - exclude past dates. If search returns no results, state that fact - do not fabricate. Do not include irrelevant information in reports. User lives near Seoul Asan station.

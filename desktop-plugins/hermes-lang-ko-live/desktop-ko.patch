@@ -1,0 +1,1084 @@
+diff --git a/apps/desktop/src/plugins/hermes-bots/canonical-group-locales.ts b/apps/desktop/src/plugins/hermes-bots/canonical-group-locales.ts
+index 1d653d1c59..27dc978181 100644
+--- a/apps/desktop/src/plugins/hermes-bots/canonical-group-locales.ts
++++ b/apps/desktop/src/plugins/hermes-bots/canonical-group-locales.ts
+@@ -27,11 +27,19 @@ export interface CanonicalGroupMessages {
+   uploadFailed: string
+   memberWorking: string
+   memberQueued: string
++  groupModel: string
++  inheritedModels: string
++  applyModel: string
++  modelNextTurn: string
+   groupWorking: string
+ }
+ 
+ export const CANONICAL_GROUP_LOCALES = {
+   en: {
++    groupModel: "Group model",
++    inheritedModels: "Each bot’s default model",
++    applyModel: "Apply to group",
++    modelNextTurn: "Applies to future turns in this group.",
+     roomStopped: 'Group stopped',
+     roomDisbanded: 'Group disbanded',
+     authorityLost: 'Group ownership changed',
+@@ -63,6 +71,10 @@ export const CANONICAL_GROUP_LOCALES = {
+     groupWorking: 'The group is working…'
+   },
+   ja: {
++    groupModel: "グループのモデル",
++    inheritedModels: "各ボットの既定モデル",
++    applyModel: "グループに適用",
++    modelNextTurn: "このグループの次の応答から適用します。",
+     roomStopped: 'グループが停止しました',
+     roomDisbanded: 'グループが解散しました',
+     authorityLost: 'グループの管理元が変更されました',
+@@ -94,6 +106,10 @@ export const CANONICAL_GROUP_LOCALES = {
+     groupWorking: 'グループが作業中です…'
+   },
+   zh: {
++    groupModel: "群组模型",
++    inheritedModels: "各机器人的默认模型",
++    applyModel: "应用到群组",
++    modelNextTurn: "仅应用于此群组后续回复。",
+     roomStopped: '群组已停止',
+     roomDisbanded: '群组已解散',
+     authorityLost: '群组管理端已更改',
+@@ -125,6 +141,10 @@ export const CANONICAL_GROUP_LOCALES = {
+     groupWorking: '群组正在处理…'
+   },
+   'zh-hant': {
++    groupModel: "群組模型",
++    inheritedModels: "各機器人的預設模型",
++    applyModel: "套用至群組",
++    modelNextTurn: "僅套用於此群組後續回覆。",
+     roomStopped: '群組已停止',
+     roomDisbanded: '群組已解散',
+     authorityLost: '群組管理端已變更',
+@@ -156,6 +176,10 @@ export const CANONICAL_GROUP_LOCALES = {
+     groupWorking: '群組正在處理…'
+   },
+   ar: {
++    groupModel: "نموذج المجموعة",
++    inheritedModels: "النموذج الافتراضي لكل بوت",
++    applyModel: "تطبيق على المجموعة",
++    modelNextTurn: "يسري على الردود القادمة في هذه المجموعة.",
+     roomStopped: 'أُوقفت المجموعة',
+     roomDisbanded: 'حُلّت المجموعة',
+     authorityLost: 'تغيّر مالك المجموعة',
+@@ -187,6 +211,10 @@ export const CANONICAL_GROUP_LOCALES = {
+     groupWorking: 'المجموعة تعمل…'
+   },
+   ru: {
++    groupModel: "Модель группы",
++    inheritedModels: "Модель каждого бота по умолчанию",
++    applyModel: "Применить к группе",
++    modelNextTurn: "Для следующих ответов только в этой группе.",
+     roomStopped: 'Группа остановлена',
+     roomDisbanded: 'Группа распущена',
+     authorityLost: 'Владелец группы изменился',
+@@ -221,6 +249,10 @@ export const CANONICAL_GROUP_LOCALES = {
+     groupWorking: 'Группа работает…'
+   },
+   fr: {
++    groupModel: "Modèle du groupe",
++    inheritedModels: "Modèle par défaut de chaque bot",
++    applyModel: "Appliquer au groupe",
++    modelNextTurn: "Pour les prochaines réponses de ce groupe.",
+     roomStopped: 'Groupe arrêté',
+     roomDisbanded: 'Groupe dissous',
+     authorityLost: 'Gestionnaire du groupe modifié',
+@@ -254,6 +286,10 @@ export const CANONICAL_GROUP_LOCALES = {
+     groupWorking: 'Le groupe travaille…'
+   },
+   de: {
++    groupModel: "Gruppenmodell",
++    inheritedModels: "Standardmodell jedes Bots",
++    applyModel: "Auf Gruppe anwenden",
++    modelNextTurn: "Gilt für künftige Antworten dieser Gruppe.",
+     roomStopped: 'Gruppe angehalten',
+     roomDisbanded: 'Gruppe aufgelöst',
+     authorityLost: 'Gruppenverwaltung gewechselt',
+@@ -288,6 +324,10 @@ export const CANONICAL_GROUP_LOCALES = {
+     groupWorking: 'Die Gruppe arbeitet…'
+   },
+   es: {
++    groupModel: "Modelo del grupo",
++    inheritedModels: "Modelo predeterminado de cada bot",
++    applyModel: "Aplicar al grupo",
++    modelNextTurn: "Se aplica a las próximas respuestas de este grupo.",
+     roomStopped: 'Grupo detenido',
+     roomDisbanded: 'Grupo disuelto',
+     authorityLost: 'Propietario del grupo cambiado',
+diff --git a/apps/desktop/src/plugins/hermes-bots/canonical-group-registry.tsx b/apps/desktop/src/plugins/hermes-bots/canonical-group-registry.tsx
+index 1318f9d2ba..e080760456 100644
+--- a/apps/desktop/src/plugins/hermes-bots/canonical-group-registry.tsx
++++ b/apps/desktop/src/plugins/hermes-bots/canonical-group-registry.tsx
+@@ -97,26 +97,44 @@ export function publishCanonicalGroup(
+   $canonicalGroupBindings.set({ ...$canonicalGroupBindings.get(), [alias]: binding })
+ }
+ 
+-export function CanonicalGroupList({ onOpen }: { onOpen: (key: string, origin: CanonicalGroupOrigin) => void }) {
++export function CanonicalGroupList({ onOpen, profiles = [] }: {
++  onOpen: (key: string, origin: CanonicalGroupOrigin) => void
++  profiles?: string[]
++}) {
+   const labels = useCanonicalGroupLabels()
+   const connectionId = useValue(host.state.connectionId)
+   const profile = useValue(host.state.profile)
+   const [rooms, setRooms] = useState<Array<{ key: string; name: string }>>([])
+   const [error, setError] = useState('')
+   const [refresh, setRefresh] = useState(0)
++  const profileScopes = JSON.stringify([...new Set([profile, ...profiles])].filter(Boolean).sort())
+   useEffect(() => {
+     let cancelled = false
+     setRooms([])
+     setError('')
+     void (async () => {
+       const route = captureCanonicalGroupRoute()
+-      const result = await discoverCanonicalGroups(route)
+-
+-      if (!cancelled) {setRooms(result.rooms.map(room => ({ key: registerCanonicalGroup(route, room), name: room.name })))}
++      const scopes: string[] = JSON.parse(profileScopes)
++      const results = await Promise.allSettled(scopes.map(async owner => {
++        const authority = { ...route, profile: owner }
++        const result = await discoverCanonicalGroups(authority)
++        return result.rooms.map(room => ({ authority, room }))
++      }))
++      if (cancelled) {return}
++      const seen = new Set<string>()
++      const found = results.flatMap(result => result.status === 'fulfilled' ? result.value : []).filter(({ room }) => {
++        if (seen.has(room.room_id)) {return false}
++        seen.add(room.room_id)
++        return true
++      })
++      const failures = results.flatMap((result, index) => result.status === 'rejected'
++        ? [`${scopes[index]}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`] : [])
++      setRooms(found.map(({ authority, room }) => ({ key: registerCanonicalGroup(authority, room), name: room.name })))
++      setError(failures.join(' · '))
+     })().catch(e => { if (!cancelled) {setError(e instanceof Error ? e.message : String(e))} })
+ 
+     return () => { cancelled = true }
+-  }, [connectionId, profile, refresh])
++  }, [connectionId, profile, profileScopes, refresh])
+ 
+   return <div className="grid gap-1 px-2">
+     <Button onClick={() => setRefresh(value => value + 1)} variant="ghost">{labels.refreshGroups}</Button>
+diff --git a/apps/desktop/src/plugins/hermes-bots/canonical-group-reopen-by-name.test.tsx b/apps/desktop/src/plugins/hermes-bots/canonical-group-reopen-by-name.test.tsx
+index c33f9b34f9..9f9bb7dd5f 100644
+--- a/apps/desktop/src/plugins/hermes-bots/canonical-group-reopen-by-name.test.tsx
++++ b/apps/desktop/src/plugins/hermes-bots/canonical-group-reopen-by-name.test.tsx
+@@ -43,6 +43,8 @@ vi.mock('./group-chat-parts', async importOriginal => ({
+   ...await importOriginal<typeof GroupChatParts>(),
+   GroupImageControls: () => null
+ }))
++// These tests exercise room adoption/routing, not the model catalog query.
++vi.mock('./model-picker', () => ({ ModelPicker: () => null }))
+ 
+ const state = {
+   connectionId: host.state.connectionId as WritableAtom<string | null>,
+diff --git a/apps/desktop/src/plugins/hermes-bots/canonical-group-workspace.tsx b/apps/desktop/src/plugins/hermes-bots/canonical-group-workspace.tsx
+index ebd59872ea..30e66d0252 100644
+--- a/apps/desktop/src/plugins/hermes-bots/canonical-group-workspace.tsx
++++ b/apps/desktop/src/plugins/hermes-bots/canonical-group-workspace.tsx
+@@ -1,4 +1,4 @@
+-import { Button, Textarea } from '@hermes/plugin-sdk'
++import { Button } from '@hermes/plugin-sdk'
+ import { useEffect, useRef, useState } from 'react'
+ 
+ import { type CanonicalDriverActivity, CanonicalGroupRoster, CanonicalGroupWorkingLine, canonicalMemberPhases } from './canonical-group-activity'
+@@ -9,10 +9,13 @@ import { prepareCanonicalGroupSend, readCanonicalGroupSend, retireCanonicalGroup
+ import type { PreparedCanonicalGroupSend } from './canonical-group-send'
+ import { actCanonicalGroup, canonicalGroupRequest } from './canonical-groups'
+ import type { CanonicalGroupBinding, CanonicalPendingAction, CanonicalRoom } from './canonical-groups'
++import { GroupMentionInput } from './group-chat-parts'
++import { ModelPicker } from './model-picker'
+ 
+ type RoomEvent = CanonicalGroupEvent
+ interface Attachment { attachment_id?: string; event_id?: string; kind: string; name: string; mime: string; size?: number }
+-interface RoomState { room: CanonicalRoom; driver_status?: CanonicalDriverActivity & { pending_actions?: CanonicalPendingAction[] } }
++interface RoomModel { model: string; provider: string; revision: string }
++interface RoomState { room: CanonicalRoom; model_selection?: RoomModel | null; driver_status?: CanonicalDriverActivity & { pending_actions?: CanonicalPendingAction[] } }
+ 
+ const sameGroupPayload = (payload: Record<string, unknown>, text: string, attachments: Attachment[]) =>
+   payload.text === text && JSON.stringify(payload.attachments ?? []) === JSON.stringify(attachments)
+@@ -34,6 +37,7 @@ function CanonicalRoomView({ binding: initialBinding, visible, onBack }: {
+   const [error, setError] = useState('')
+   const [readError, setReadError] = useState('')
+   const [draft, setDraft] = useState('')
++  const [modelDraft, setModelDraft] = useState<{ model: string; provider: string } | null>(null)
+   const [attachments, setAttachments] = useState<Attachment[]>([])
+   const [uploading, setUploading] = useState(false)
+   const [restored, setRestored] = useState(false)
+@@ -157,6 +161,13 @@ function CanonicalRoomView({ binding: initialBinding, visible, onBack }: {
+ 
+   const composerLocked = !restored || busy || !!pending
+   const phases = canonicalMemberPhases(state?.driver_status)
++  const modelValue = modelDraft ?? state?.model_selection ?? { model: '', provider: '' }
++  const modelBot = {
++    name: binding.profile, targetProfile: binding.profile, connectionId: binding.connectionId,
++    remoteSource: binding.connectionId !== 'local',
++    route: { connectionId: binding.connectionId, profile: binding.profile, targetProfile: binding.profile,
++      mode: binding.connectionId === 'local' ? 'local' as const : 'remote' as const }
++  }
+ 
+   return <section className="flex h-full min-h-0 flex-col gap-3 p-3">
+     <header className="flex items-center gap-2">
+@@ -186,9 +197,25 @@ function CanonicalRoomView({ binding: initialBinding, visible, onBack }: {
+       <Button onClick={() => setDiscard(null)}>{labels.cancel}</Button>
+     </div>}
+     {pending && <p role="status">{labels.restoredPendingSend}</p>}
++    <fieldset className="flex flex-wrap items-end gap-2" disabled={busy}>
++      <legend className="text-xs text-(--ui-text-secondary)">{labels.groupModel}</legend>
++      <ModelPicker bot={modelBot} includeUnconfigured={false} onChange={patch => setModelDraft({ ...modelValue, ...patch })}
++        placeholderModel={labels.inheritedModels} value={modelValue} />
++      <Button disabled={busy || !modelDraft?.model.trim()} onClick={() => void mutate(async () => {
++        await canonicalGroupRequest(binding, 'groups.model', {
++          room_id: binding.roomId, model: modelValue.model, provider: modelValue.provider,
++          request_id: crypto.randomUUID(),
++        })
++        if (alive.current) {setModelDraft(null)}
++      })}>{labels.applyModel}</Button>
++      <span className="text-xs text-(--ui-text-tertiary)">{labels.modelNextTurn}</span>
++    </fieldset>
+     <form className="flex gap-2" onSubmit={event => { event.preventDefault(); send() }}>
+       <CanonicalGroupAttachments attachments={attachments} binding={binding} disabled={composerLocked} onChange={setAttachments} onUploadingChange={setUploading} />
+-      <Textarea aria-label={labels.groupMessage} className="min-w-0 flex-1" disabled={composerLocked} onChange={e => setDraft(e.target.value)} value={draft} />
++      <GroupMentionInput aria-label={labels.groupMessage} className="min-w-0 flex-1" disabled={composerLocked}
++        members={(state?.room.members ?? []).map(member => ({ name: member.profile, handle: member.handle,
++          display_name: member.display_name, connectionId: binding.connectionId }))}
++        onChange={setDraft} onSubmitDraft={send} value={draft} />
+       <Button disabled={!restored || busy || uploading || (!pending && !draft.trim() && !attachments.length) || !state?.driver_status} type="submit">{pending ? labels.retry : labels.send}</Button>
+     </form>
+   </section>
+diff --git a/apps/desktop/src/plugins/hermes-bots/group-chat-parts.tsx b/apps/desktop/src/plugins/hermes-bots/group-chat-parts.tsx
+index 733529b5eb..0e13324509 100644
+--- a/apps/desktop/src/plugins/hermes-bots/group-chat-parts.tsx
++++ b/apps/desktop/src/plugins/hermes-bots/group-chat-parts.tsx
+@@ -158,6 +158,7 @@ interface MentionOption {
+ interface GroupMentionInputProps {
+   'aria-label'?: string
+   autoFocus?: boolean
++  disabled?: boolean
+   className?: string
+   members: GroupMember[]
+   onChange: (value: string) => void
+diff --git a/apps/desktop/src/plugins/hermes-bots/i18n.ts b/apps/desktop/src/plugins/hermes-bots/i18n.ts
+index 786c53778c..4c10d85b6b 100644
+--- a/apps/desktop/src/plugins/hermes-bots/i18n.ts
++++ b/apps/desktop/src/plugins/hermes-bots/i18n.ts
+@@ -35,6 +35,7 @@ import { useMemo } from 'react'
+ import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
+ import { bind, type Bound } from './i18n-bind'
+ import { type BotsMessages } from './i18n-messages'
++import { ko } from './ko'
+ import { getPluginCtx } from './shared'
+ 
+ const en: BotsMessages = {
+@@ -1778,6 +1779,7 @@ const zhHant: BotsMessages = {
+ /** Registered via `ctx.i18n.register` at plugin load (disposer tracked). */
+ export const BOTS_LOCALES: PluginLocaleBundles = {
+   en,
++  ko,
+   ja,
+   zh,
+   'zh-hant': zhHant,
+diff --git a/apps/desktop/src/plugins/hermes-bots/model-picker.test.tsx b/apps/desktop/src/plugins/hermes-bots/model-picker.test.tsx
+index b80bcc6a11..bd62b51164 100644
+--- a/apps/desktop/src/plugins/hermes-bots/model-picker.test.tsx
++++ b/apps/desktop/src/plugins/hermes-bots/model-picker.test.tsx
+@@ -72,12 +72,12 @@ const remoteBot = {
+  *  question about the cache rather than about a fresh store. */
+ let client: QueryClient
+ 
+-function mount(bot: null | RosterRow) {
++function mount(bot: null | RosterRow, includeUnconfigured = true) {
+   const wrapper = ({ children }: { children: ReactNode }) => (
+     <QueryClientProvider client={client}>{children}</QueryClientProvider>
+   )
+ 
+-  return render(<ModelPicker bot={bot} onChange={vi.fn()} value={{ model: '', provider: '' }} />, { wrapper })
++  return render(<ModelPicker bot={bot} includeUnconfigured={includeUnconfigured} onChange={vi.fn()} value={{ model: '', provider: '' }} />, { wrapper })
+ }
+ 
+ /** Mount with the selection a saved bot profile would carry into the editor. */
+@@ -118,6 +118,17 @@ describe('a bot gateway that never answers', () => {
+ })
+ 
+ describe('the catalog read', () => {
++  it('keeps the configured group catalog separate from the editor catalog', async () => {
++    hostMock.requestProfile.mockResolvedValue({ providers: [{ models: ['existing-model'], slug: 'configured' }] })
++    const editor = mount(remoteBot)
++    await waitFor(() => expect(hostMock.requestProfile).toHaveBeenCalledTimes(1))
++    editor.unmount()
++    mount(remoteBot, false)
++    await waitFor(() => expect(hostMock.requestProfile).toHaveBeenCalledTimes(2))
++    expect(hostMock.requestProfile).toHaveBeenLastCalledWith(remoteBot.route, 'model.options', {
++      explicit_only: false, include_unconfigured: false
++    })
++  })
+   it('rides the bot’s own route, unforced, and survives a remount from cache', async () => {
+     hostMock.requestProfile.mockResolvedValue({ providers: [{ models: ['m1'], name: 'Prov', slug: 'prov' }] })
+ 
+diff --git a/apps/desktop/src/plugins/hermes-bots/model-picker.tsx b/apps/desktop/src/plugins/hermes-bots/model-picker.tsx
+index abe8afb7e6..d72ace92a7 100644
+--- a/apps/desktop/src/plugins/hermes-bots/model-picker.tsx
++++ b/apps/desktop/src/plugins/hermes-bots/model-picker.tsx
+@@ -73,7 +73,7 @@ interface ModelOptionsResult {
+   providers?: ModelProviderOption[]
+ }
+ 
+-function useModelOptions(bot: null | RosterRow = null) {
++function useModelOptions(bot: null | RosterRow = null, includeUnconfigured = true) {
+   // Hook body runs during render: an orphaned row must paint the picker
+   // disabled/erroring, not throw into the pane's error boundary.
+   const resolved = bot ? resolveBotConnectionRoute(bot) : null
+@@ -81,7 +81,7 @@ function useModelOptions(bot: null | RosterRow = null) {
+   const orphaned = resolved?.status === 'owner_removed'
+ 
+   return useQuery<ModelOptionsResult>({
+-    queryKey: [ID, 'model-options', route ? botRouteKey(route) : 'active'],
++    queryKey: [ID, 'model-options', route ? botRouteKey(route) : 'active', includeUnconfigured],
+     // No forced `refresh`: forcing a network read on EVERY mount bypassed the
+     // staleTime cache, so each Bots view remount (tab re-front, dialog reopen,
+     // pane visibility flip) knocked the picker back into its loading state and
+@@ -90,7 +90,7 @@ function useModelOptions(bot: null | RosterRow = null) {
+     queryFn: () =>
+       boundedModelOptionsFetch(
+         requestForBot(bot, 'model.options', {
+-          include_unconfigured: true,
++          include_unconfigured: includeUnconfigured,
+           explicit_only: false
+         }) as Promise<ModelOptionsResult>
+       ),
+@@ -115,15 +115,16 @@ interface ModelSelection {
+ type ModelSelectionPatch = { model: string } | { model: string; provider: string } | { provider: string }
+ interface ModelPickerProps {
+   bot?: null | RosterRow
++  includeUnconfigured?: boolean
+   onChange: (patch: ModelSelectionPatch) => void
+   placeholderModel?: string
+   value: ModelSelection
+ }
+ 
+-export function ModelPicker({ bot = null, value, onChange, placeholderModel }: ModelPickerProps) {
++export function ModelPicker({ bot = null, includeUnconfigured = true, value, onChange, placeholderModel }: ModelPickerProps) {
+   const b = useBots()
+   const { t } = useI18n()
+-  const { data, isLoading, error } = useModelOptions(bot)
++  const { data, isLoading, error } = useModelOptions(bot, includeUnconfigured)
+ 
+   // Hooks are ALWAYS declared up front, before any conditional return.
+   // Declaring them after a return trips React error #310.
+diff --git a/apps/desktop/src/plugins/hermes-bots/roster-pane.tsx b/apps/desktop/src/plugins/hermes-bots/roster-pane.tsx
+index 84dda2bf3b..b22baa969c 100644
+--- a/apps/desktop/src/plugins/hermes-bots/roster-pane.tsx
++++ b/apps/desktop/src/plugins/hermes-bots/roster-pane.tsx
+@@ -471,7 +471,10 @@ export function BotsPane() {
+ 
+   return (
+     <div className="flex h-full flex-col">
+-      <CanonicalGroupList onOpen={openGroupChat} />
++      <CanonicalGroupList onOpen={openGroupChat} profiles={roster.filter(row => {
++        const source = row.route?.connectionId ?? row.connectionId ?? (!row.remoteSource ? activeConnectionId : null)
++        return source === activeConnectionId && !row.sourceMissing && row.sourceReachable !== false
++      }).map(row => row.route?.targetProfile ?? row.targetProfile ?? row.name)} />
+       {renderRosterToolbar({
+         b,
+         activityToasts,
+diff --git a/gateway/session_group_controls.py b/gateway/session_group_controls.py
+index 0f0b80d208..8219edf265 100644
+--- a/gateway/session_group_controls.py
++++ b/gateway/session_group_controls.py
+@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
+ 
+ 
+ GROUP_METHODS = {
++    'groups.model': 'session:control',
+     'groups.capabilities': 'session:read',
+     'groups.list': 'session:read',
+     'groups.state': 'session:read',
+@@ -27,6 +28,7 @@ GROUP_METHODS = {
+     'groups.approve': 'session:approve',
+ }
+ _FIELDS = {
++    'groups.model': {'room_id', 'model', 'provider', 'request_id'},
+     'groups.capabilities': set(),
+     'groups.list': {'limit', 'offset', 'include_disbanded'},
+     'groups.state': {'room_id', 'include_disbanded'},
+@@ -46,7 +48,7 @@ _FIELDS = {
+ }
+ 
+ 
+-async def dispatch_group_control(connection, method, params):
++async def dispatch_group_control(connection, method, params, *, _directory=True):
+     authority, actor = connection.authority, connection.actor
+     capability = GROUP_METHODS.get(method, 'session:read')
+     if capability not in actor.capabilities:
+@@ -66,6 +68,10 @@ async def dispatch_group_control(connection, method, params):
+     if profile and not profile_matches_home(profile, home):
+         raise RuntimeStoreError('profile_mismatch')
+     supplied = {key: value for key, value in params.items() if key != 'profile'}
++    service = getattr(authority, 'hosted_room_service', None)
++    if (_directory and connection.host_scoped and getattr(service, 'shared_directory', False)
++            and method in GROUP_METHODS and (method == 'groups.list' or 'room_id' in supplied)):
++        return await _shared_room_control(connection, method, supplied)
+     siblings = _roster_siblings(connection, supplied) if method == 'profiles.list' else ()
+ 
+     def invoke():
+@@ -85,6 +91,91 @@ async def dispatch_group_control(connection, method, params):
+     return await asyncio.to_thread(invoke)
+ 
+ 
++async def _shared_room_control(connection, method, params):
++    """Opt-in host directory; all reads and mutations still use the room's owning authority.
++
++    Only host-scoped transports enter here. The existing per-room authorizer remains
++    mandatory, and neither stored room owners nor member execution identities change.
++    """
++    from gateway.session_authorities import local_bots
++    from gateway import hosted_rooms as rooms
++
++    targets = [connection]
++    seen = {connection.authority.profile_id}
++    for bot in local_bots(connection.authority.runner):
++        if bot.problem or bot.retiring or bot.authority.profile_id in seen:
++            continue
++        target = connection._sibling_for(bot.name)
++        if target is not None:
++            targets.append(target)
++            seen.add(target.authority.profile_id)
++
++    owners = getattr(connection, '_shared_room_owners', None)
++    if owners is None:
++        owners = connection._shared_room_owners = {}
++
++    if method == 'groups.list':
++        try:
++            limit = rooms._bounded_limit(params.get('limit', rooms.MAX_ROOM_LIST_LIMIT), rooms.MAX_ROOM_LIST_LIMIT)
++            offset = rooms._non_negative(params.get('offset', 0), 'offset')
++        except rooms.HostedRoomError as exc:
++            raise RuntimeStoreError(exc.reason) from exc
++
++        async def collect(target):
++            result, cursor = [], 0
++            while True:
++                page = await dispatch_group_control(target, method, {
++                    **params, 'limit': rooms.MAX_ROOM_LIST_LIMIT, 'offset': cursor,
++                }, _directory=False)
++                result.extend((room, target.authority.profile_id) for room in page['rooms'])
++                if page['next_offset'] is None:
++                    return result
++                cursor = page['next_offset']
++
++        entries = [entry for batch in await asyncio.gather(*(collect(t) for t in targets)) for entry in batch]
++        found = {}
++        for room, owner in entries:
++            rid = room['room_id']
++            if rid in found and found[rid][1] != owner:
++                raise RuntimeStoreError('ambiguous_room')
++            found[rid] = room, owner
++        owners.update({rid: owner for rid, (_, owner) in found.items()})
++        ordered = sorted((room for room, _ in found.values()), key=lambda room: (-room['updated_at'], room['room_id']))
++        return {'rooms': ordered[offset:offset + limit],
++                'next_offset': offset + limit if offset + limit < len(ordered) else None}
++
++    rid = params['room_id']
++    if not isinstance(rid, str):
++        raise RuntimeStoreError('invalid_params')
++    if rid not in owners:
++        def locate():
++            matches = []
++            for target in targets:
++                service = getattr(target.authority, 'hosted_room_service', None)
++                if service is None:
++                    continue
++                with target.authority.db._read_ctx() as db:
++                    exists = db.execute('SELECT 1 FROM hosted_rooms WHERE room_id=?', (rid,)).fetchone()
++                if exists:
++                    try:
++                        service.authorize_room(target.actor.subject, rid)
++                    except RuntimeStoreError as exc:
++                        if exc.reason != 'permission_denied':
++                            raise
++                    else:
++                        matches.append(target.authority.profile_id)
++            return matches
++        matches = await asyncio.to_thread(locate)
++        if len(matches) > 1:
++            raise RuntimeStoreError('ambiguous_room')
++        if matches:
++            owners[rid] = matches[0]
++    target = next((t for t in targets if t.authority.profile_id == owners.get(rid)), None)
++    if rid in owners and target is None:
++        raise RuntimeStoreError('profile_mismatch')
++    return await dispatch_group_control(target or connection, method, params, _directory=False)
++
++
+ def _group(authority, actor, method, params, *, host_scope=False):
+     from gateway import hosted_rooms as rooms
+     db_path = authority.db.db_path
+@@ -110,6 +201,11 @@ def _group(authority, actor, method, params, *, host_scope=False):
+                 room_authorizer(actor.subject, params['room_id'], create=True, conn=conn)
+         else:
+             room_authorizer(actor.subject, params['room_id'])
++    if method == 'groups.model':
++        if service is None:
++            raise RuntimeStoreError('runtime_coordination_required')
++        return service.select_model(params['room_id'], model=params.get('model'),
++                                    provider=params.get('provider', ''), request_id=params.get('request_id'))
+     if method in {'groups.attachment.upload', 'groups.attachment.download'}:
+         if service is None:
+             raise RuntimeStoreError('runtime_coordination_required')
+@@ -214,6 +310,7 @@ def _group(authority, actor, method, params, *, host_scope=False):
+         result = {'room': room}
+         if service is not None and room.get('disbanded_at') is None:
+             result['driver_status'] = service.status(room['room_id'])
++            result['model_selection'] = service.model_selection(room['room_id'])
+         return result
+ 
+     handlers = {
+diff --git a/gateway/session_hosted_rpc.py b/gateway/session_hosted_rpc.py
+index 4b9fe83086..e4bce6a963 100644
+--- a/gateway/session_hosted_rpc.py
++++ b/gateway/session_hosted_rpc.py
+@@ -24,11 +24,12 @@ class HostedRoomAuthorityRPC:
+     accepts_attachments = True  # submit resolves event-bound bytes per member
+ 
+     def __init__(self, authority, loop, *, room_id, member_id, profile, principal,
+-                 authorize, authorize_write=None, timeout=30):
++                 authorize, authorize_write=None, room_model=None, timeout=30):
+         self.authority, self.loop = authority, loop
+         self.room_id, self.member_id, self.profile = room_id, member_id, profile
+         self.principal, self.authorizer, self.timeout = principal, authorize, timeout
+         self.authorize_write = authorize_write
++        self.room_model = room_model
+         self.callbacks = {}
+         binding = json.dumps([room_id, member_id, profile], separators=(',', ':'))
+         self.creation_id = 'hosted:' + hashlib.sha256(binding.encode()).hexdigest()
+@@ -116,6 +117,15 @@ class HostedRoomAuthorityRPC:
+         await self.authority.resolve(self.principal, self.ref)
+         return {'session_id': self.ref.session_id, 'title': f'Group: {self.room_id}'}
+ 
++    async def _model(self, params):
++        # Choosing a group model must not create chats or call a model. Uncreated
++        # members inherit the saved room selection at their first actual submit.
++        if self.authority.db.get_session(self.ref.session_id) is None:
++            return {'pending': True}
++        await self._resume(params)
++        await self._apply_room_model()
++        return {'session_id': self.ref.session_id}
++
+     def _rows(self):
+         self.authority.authorize(self.principal, self.ref, 'session:read')
+         rows = list_session_admissions(self.authority.db, session_id=self.ref.session_id, pending_only=False)
+@@ -156,6 +166,7 @@ class HostedRoomAuthorityRPC:
+         rows = self._rows()
+         if any(row['status'] == 'unknown' for row, _, _ in rows):
+             raise RuntimeStoreError('unknown_execution')
++        await self._apply_room_model()
+         from gateway.session_hosted_attachments import submission_payload
+         from gateway.session_ingress_media import capture_lease
+         # One lease from capture through the admission commit: documents ride in the prompt text,
+@@ -182,6 +193,38 @@ class HostedRoomAuthorityRPC:
+                     self._terminal(row, identity, gen)
+         return asdict(receipt)
+ 
++    async def _apply_room_model(self):
++        if self.room_model is None:
++            return
++        selection = await asyncio.to_thread(self.room_model)
++        if not selection:
++            return
++        key = 'gateway.hosted.model.applied.v1:' + self.ref.session_id
++        def applied():
++            with self.authority.db._read_ctx() as conn:
++                row = conn.execute('SELECT value FROM state_meta WHERE key=?', (key,)).fetchone()
++            return row[0] if row else None
++        if await asyncio.to_thread(applied) == selection['revision']:
++            return
++        from gateway.session_mutations import mutate_session
++        snapshot = await self.authority.attach(self.principal, self.ref)
++        result = await mutate_session(self.authority, self.principal, self.ref, {
++            'session_id': self.ref.session_id, 'operation': 'model',
++            'request_id': 'group-model:' + hashlib.sha256(json.dumps(
++                [selection['revision'], self.ref.session_id, snapshot.handle.revision]).encode()).hexdigest(),
++            'payload': {'model': selection['model'], 'provider': selection['provider']},
++            'expected_revision': snapshot.handle.revision,
++            'expected_generation': snapshot.handle.execution_generation,
++        })
++        if result.get('status') == 'confirmation_required':
++            raise RuntimeStoreError('model_confirmation_required')
++        from hermes_state_runtime import _epoch
++        def mark(conn):
++            _epoch(conn, self.authority.epoch)
++            conn.execute('INSERT INTO state_meta(key,value) VALUES(?,?) '
++                         'ON CONFLICT(key) DO UPDATE SET value=excluded.value', (key, selection['revision']))
++        await asyncio.to_thread(self.authority.db._execute_write, mark)
++
+     def _completed(self, admission_id, future):
+         if future.cancelled() or admission_id not in self.callbacks:
+             return
+diff --git a/gateway/session_hosted_service.py b/gateway/session_hosted_service.py
+index 30c6ef5d0e..16550ee5af 100644
+--- a/gateway/session_hosted_service.py
++++ b/gateway/session_hosted_service.py
+@@ -17,6 +17,16 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
+     def __init__(self, authority, loop):
+         self.authority, self.loop = authority, loop
+         self.member_rpcs = {}
++        # An installation may explicitly link its own native and dashboard login
++        # for hosted rooms. Keep persisted owners and in-flight task identities intact.
++        from hermes_constants import get_default_hermes_root
++        from hermes_cli.config import read_user_config_raw
++        config = read_user_config_raw(get_default_hermes_root(home=authority.profile_id) / 'config.yaml')
++        section = config.get('hosted_rooms', {})
++        self.shared_directory = isinstance(section, dict) and section.get('shared_directory') is True
++        aliases = section.get('owner_aliases', {}) if isinstance(section, dict) else {}
++        self.owner_aliases = {alias: owner for alias, owner in aliases.items()
++                              if isinstance(alias, str) and alias and isinstance(owner, str) and owner}
+         super().__init__(None, db_path=authority.db.db_path)
+ 
+     def _make_rpc(self, server):
+@@ -55,7 +65,8 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
+         target_home = self.profile_homes().get(profile)
+         if target_home is None or params.get('_target_home') != str(target_home):
+             raise RuntimeStoreError('permission_denied')
+-        result = {'owner': owner, 'target_home': str(target_home)}
++        result = {'owner': owner, 'target_home': str(target_home),
++                  'model_selection': self.model_selection(room_id)}
+         if operation in {'submit', 'execute', 'attachment'}:
+             matches = [t for t in list_tasks(self.db_path, room_id=room_id)
+                        if asdict(t['identity']) == params.get('task')
+@@ -113,7 +124,8 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
+                 if historical is None:
+                     conn.execute('INSERT INTO state_meta(key,value) VALUES(?,?)', (key, actor_subject))
+                     return True
+-            if row is None or row[0] != actor_subject:
++            if row is None or (self.owner_aliases.get(row[0], row[0])
++                               != self.owner_aliases.get(actor_subject, actor_subject)):
+                 raise RuntimeStoreError('permission_denied')
+             return True
+         return write(conn) if conn is not None else self.authority.db._execute_write(write)
+@@ -125,6 +137,39 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
+             raise RuntimeStoreError('permission_denied')
+         return row[0]
+ 
++    def model_selection(self, room_id):
++        import json
++        with self.authority.db._read_ctx() as conn:
++            row = conn.execute('SELECT value FROM state_meta WHERE key=?',
++                               ('gateway.hosted.model.v1:' + room_id,)).fetchone()
++        return json.loads(row[0]) if row else None
++
++    def select_model(self, room_id, *, model, provider, request_id):
++        import json
++        if (not isinstance(model, str) or not model.strip() or len(model) > 512
++                or not isinstance(provider, str) or len(provider) > 128
++                or not isinstance(request_id, str) or not request_id or len(request_id) > 128):
++            raise RuntimeStoreError('invalid_params')
++        value = {'model': model.strip(), 'provider': provider.strip(), 'revision': request_id}
++        room = self._room(room_id)
++        if any((member.get('target') or {}).get('kind', 'local') != 'local' for member in room['members']):
++            raise RuntimeStoreError('model_selection_unavailable')
++        def write(conn):
++            _epoch(conn, self.authority.epoch)
++            conn.execute('INSERT INTO state_meta(key,value) VALUES(?,?) '
++                         'ON CONFLICT(key) DO UPDATE SET value=excluded.value',
++                         ('gateway.hosted.model.v1:' + room_id, json.dumps(value)))
++        self.authority.db._execute_write(write)
++        from tui_gateway.hosted_room_driver import HostedRoomBinding
++        binding = HostedRoomBinding(room_id, room['authority_gateway_id'], room['authority_epoch'])
++        for member in room['members']:
++            if member['profile'] not in self.profile_homes():
++                continue
++            rpc = self._resolve_member_transport(binding, {'payload': {
++                'target_profile': member['profile'], 'target_member_id': member['member_id']}})
++            rpc._call('model')
++        return value
++
+     def _resolve_member_transport(self, binding, task):
+         if self._member_is_peer(binding.room_id, str(task['payload'].get('target_member_id') or task['payload'].get('target_profile'))):
+             return super()._resolve_member_transport(binding, task)
+@@ -196,7 +241,7 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
+                 'hosted:' + binding.room_id + ':' + member)
+             self.member_rpcs[key] = HostedRoomAuthorityRPC(self.authority, self.loop,
+                 room_id=binding.room_id, member_id=member, profile=profile, principal=principal, authorize=authorize,
+-                authorize_write=authorize_write)
++                authorize_write=authorize_write, room_model=lambda: self.model_selection(binding.room_id))
+         return self.member_rpcs[key]
+ 
+     def check_admission(self, ref, row):
+diff --git a/gateway/session_hosted_transport.py b/gateway/session_hosted_transport.py
+index 12f0cb13cb..a2feb1fed2 100644
+--- a/gateway/session_hosted_transport.py
++++ b/gateway/session_hosted_transport.py
+@@ -23,7 +23,7 @@ from hermes_state_runtime import RuntimeStoreError, _epoch
+ 
+ _BINDING = 'gateway.hosted.transport.v1:'
+ _OPERATIONS = frozenset({'resolve_exact', 'create', 'resume', 'submit', 'history', 'results',
+-                         'info', 'interrupt', 'discard', 'approve'})
++                         'info', 'interrupt', 'discard', 'approve', 'model'})
+ # One chunk per private-socket exchange. The response is a single JSON line capped at
+ # gateway.control_socket._MAX_RESPONSE_BYTES (512 KiB) on both the POSIX socket and the
+ # Windows pipe: 360 KiB raw -> 480 KiB base64, leaving 32 KiB for the envelope (owner
+@@ -238,7 +238,8 @@ def install_hosted_transport(server, authority, loop, *, attest):
+         # the RPC's own authorize hook has nothing left to decide. A new operation must
+         # be added to _OPERATIONS (and therefore attested) before it can reach _call.
+         rpc = HostedRoomAuthorityRPC(authority, loop, **selector, principal=principal,
+-                                    authorize=lambda *args: True)
++                                    authorize=lambda *args: True,
++                                    room_model=lambda: attested.get('model_selection'))
+         key = _BINDING + rpc.ref.session_id
+         encoded = json.dumps(binding, sort_keys=True)
+         def persist(conn):
+diff --git a/hermes_cli/profiles_initialization.py b/hermes_cli/profiles_initialization.py
+index 8dbe105264..d4241f1aac 100644
+--- a/hermes_cli/profiles_initialization.py
++++ b/hermes_cli/profiles_initialization.py
+@@ -4,6 +4,25 @@ from pathlib import Path
+ from typing import Optional
+ 
+ 
++def seed_profile_language(profile_dir: Path) -> None:
++    """Inherit the launch profile's UI language without changing an explicit choice."""
++    from hermes_constants import get_hermes_home
++    from hermes_cli.config import atomic_config_write, read_user_config_raw
++
++    config_path = profile_dir / "config.yaml"
++    config = read_user_config_raw(config_path) if config_path.is_file() else {}
++    display = config.get("display")
++    if isinstance(display, dict) and display.get("language"):
++        return
++    source_path = get_hermes_home() / "config.yaml"
++    source = read_user_config_raw(source_path) if source_path.is_file() else {}
++    source_display = source.get("display", {})
++    language = source_display.get("language") if isinstance(source_display, dict) else None
++    if isinstance(language, str) and language.strip():
++        config["display"] = {**(display if isinstance(display, dict) else {}), "language": language}
++        atomic_config_write(config_path, config)
++
++
+ def finish_profile_layout(profile_dir: Path, *, no_skills: bool, clone_all: bool,
+                            description: Optional[str], soul: Optional[str] = None) -> None:
+     """Seed files a fresh profile owns from day one; runs on the staging tree before publish."""
+@@ -38,6 +57,8 @@ def finish_profile_layout(profile_dir: Path, *, no_skills: bool, clone_all: bool
+     # profile is v0/outdated; --clone-all snapshots stay byte-for-byte apart from the
+     # explicit runtime/history stripping above.
+     if not clone_all:
++        with contextlib.suppress(Exception):  # optional preference must not block a usable profile
++            seed_profile_language(profile_dir)
+         _migrate_profile_config_if_outdated(profile_dir)
+ 
+     # Description last, so a partial-create failure doesn't strand a description file.
+diff --git a/tui_gateway/contracts/canonical.py b/tui_gateway/contracts/canonical.py
+index 3a9dd88a19..942652c221 100644
+--- a/tui_gateway/contracts/canonical.py
++++ b/tui_gateway/contracts/canonical.py
+@@ -18,6 +18,22 @@ from .groups_bot_relay import RoomParams, RoomTaskReceipt
+ from .prompt_voice import ClarifyLockParams, ClarifyLockResult
+ from .registry import canonical_method
+ 
++
++class GroupModelParams(RoomParams):
++    model: str
++    provider: str = ''
++    request_id: str
++
++
++class GroupModelResult(Result):
++    model: str
++    provider: str
++    revision: str
++
++
++canonical_method('groups.model', params=GroupModelParams, result=GroupModelResult,
++                 doc='Select one model for future member turns in this hosted room only.')
++
+ # ── admissions ────────────────────────────────────────────────────────────────────────────────
+ 
+ 
+diff --git a/tui_gateway/contracts/groups_bot_relay.py b/tui_gateway/contracts/groups_bot_relay.py
+index b6dc51ab7f..80092c30b3 100644
+--- a/tui_gateway/contracts/groups_bot_relay.py
++++ b/tui_gateway/contracts/groups_bot_relay.py
+@@ -234,6 +234,7 @@ class RoomDriverStatus(Result):
+ class GroupsStateResult(Result):
+     room: Room
+     driver_status: RoomDriverStatus | None = None
++    model_selection: dict[str, JsonValue] | None = None
+ 
+ 
+ method("groups.state", params=GroupsStateParams, result=GroupsStateResult,
+diff --git a/website/docs/user-guide/bot-mode.md b/website/docs/user-guide/bot-mode.md
+index fa085b9792..d672ccd723 100644
+--- a/website/docs/user-guide/bot-mode.md
++++ b/website/docs/user-guide/bot-mode.md
+@@ -109,6 +109,31 @@ Routines are plain [Hermes cron jobs](./features/cron.md) namespaced `[bot:<name
+ 
+ ## Groups and group chats
+ 
++This installation adds an opt-in `hosted_rooms.owner_aliases` mapping in the
++root `config.yaml` for an operator who uses both native Desktop and a dashboard
++login. Map the exact authenticated subject to the native subject, for example
++`'auth:v1:["basic","","your-login"]': 'uid:501'`. Restart the gateway after
++changing the mapping. Group authorization compares these explicitly linked
++identities; existing room IDs, owners, logs and member task identities stay
++unchanged. Other authenticated users retain their separate rooms.
++
++This installation also supports `hosted_rooms.shared_directory: true` in the
++root configuration. Host-scoped connections then list all authorized rooms on
++the served profiles as one paginated collection. Room-ID operations route to
++the original owning profile, including existing rooms opened from a different
++foreground profile. Profile-bound grants keep their original scope. Duplicate
++room IDs across profiles are refused as ambiguous; rooms and logs are never
++copied, merged or moved. Restart the gateway after changing this setting.
++
++The canonical room composer reuses the mention input: Enter sends, Shift+Enter
++adds a newline, and composition Enter does not send unfinished IME text. The
++group model picker uses the existing model catalog. Apply stores one selection
++for future responses of every local member in that room (`groups.model`); it
++does not change the bots' profile configuration or their other chats. Existing
++member sessions use the canonical model mutation and its guards. Members with
++no group session inherit the selection at their first real turn. The server
++stores the selection in state_meta and shares it in `groups.state`.
++
+ Messages sent during a member turn queue behind the active room drive, including
+ replies in the same thread. They do not interrupt that member or mark unseen
+ messages as read. Stop cancels queued continuations and holds the members until
+diff --git a/apps/desktop/src/plugins/hermes-bots/ko.ts b/apps/desktop/src/plugins/hermes-bots/ko.ts
+new file mode 100644
+index 0000000000..32414b2243
+--- /dev/null
++++ b/apps/desktop/src/plugins/hermes-bots/ko.ts
+@@ -0,0 +1,211 @@
++/** Korean Bot Mode copy. Uses the app's selected language; no agent prompts change. */
++import type { BotsMessages } from './i18n-messages'
++
++export const ko: BotsMessages = {
++  canonical: {
++    groupModel: '그룹 전체 모델', inheritedModels: '각 봇의 기본 모델',
++    applyModel: '그룹 전체에 적용', modelNextTurn: '이 그룹의 다음 응답부터 적용됩니다.',
++    members: '참여자', roomStopped: '그룹 중지됨', roomDisbanded: '그룹 해체됨',
++    authorityLost: '그룹 관리 주체가 변경됨', workLimitReached: '그룹 작업 한도에 도달함',
++    turnFailed: '응답 실패', turnCancelled: '응답 취소됨', turnDeferred: '응답 보류됨',
++    memberUnavailable: '참여자를 사용할 수 없음', refreshGroups: '게이트웨이 그룹 새로고침',
++    loadingGroup: '그룹 불러오는 중…', loadingGroups: '게이트웨이 그룹 불러오는 중…',
++    emptyGroups: '게이트웨이에 그룹이 없습니다.',
++    driverUnavailable: '그룹 실행 기능을 사용할 수 없습니다. 담당 게이트웨이를 업데이트하거나 다시 연결하세요.',
++    invalidLogCursor: '잘못된 대화 기록 위치', allowOnce: '이번만 허용', deny: '거부',
++    discardUnknown: '결과가 불명확한 작업 폐기',
++    discardWarning: '이미 변경이 발생했을 수 있습니다. 작업을 폐기해도 변경은 되돌아가지 않습니다.',
++    confirmDiscard: '폐기 확인',
++    unconfirmedSend: '이전 전송이 확인되지 않았습니다. 새 메시지를 보내기 전에 원래 내용으로 다시 시도하세요.',
++    restoredPendingSend: '확인되지 않은 전송을 복원했습니다. 새 메시지를 보내기 전에 다시 시도하세요.',
++    groupMessage: '그룹 메시지', attachFiles: '파일 첨부', removeAttachment: '첨부 제거',
++    uploadFailed: '업로드 실패', memberWorking: '작업 중', memberQueued: '대기 중', groupWorking: '그룹이 작업 중입니다…'
++  },
++  editor: {
++    fullConfigHint: '전체 설정에는 최신 게이트웨이가 필요합니다. Hermes 업데이트 후 게이트웨이를 다시 시작하세요.',
++    liveCapabilities: '사용 기능 — 스킬·도구·MCP는 즉시 적용됩니다', editSoul: 'SOUL.md — 페르소나와 에이전트 간 메시지 규칙',
++    remoteCapabilitiesHint: '원격 기능 설정에는 최신 데스크톱이 필요합니다. 모델과 SOUL 변경은 저장해야 적용됩니다.',
++    skillsEnabled: (enabled, total) => `스킬 (${total}개 중 ${enabled}개 활성)`,
++    toolsetsEnabled: (enabled, total) => `도구 모음 (${total}개 중 ${enabled}개 활성 — 모두 해제하면 기본값 복원)`,
++    mcpServers: 'MCP 서버', providerCustom: '제공업체 직접 입력', modelCustom: '모델 직접 입력',
++    backToDropdowns: '← 목록에서 선택', inheritLaunch: '실행 프로필에서 상속', enterManually: '직접 입력…',
++    gatewayDefault: '게이트웨이 기본값', modelNameExample: '예: 모델 이름', modelSwitchFailed: '모델 변경 실패',
++    newDescription: '자신만의 기억·스킬·대화를 가진 동료입니다. 다른 에이전트와 메시지를 주고받을 수 있습니다.',
++    name: '이름', title: '직책', description: '설명', createOn: '생성 위치', general: '일반', capabilities: '사용 기능',
++    skills: '스킬', tools: '도구', cloneFrom: '복제할 프로필', freshProfile: '새 프로필 — 기본 스킬 포함',
++    inheritedModel: '실행 프로필에서 상속한 모델', soul: 'SOUL.md — 선택 사항, 자동 생성 페르소나를 대체합니다',
++    shareKeys: '기본 프로필과 키·계정 공유', shareKeysOn: target => `${target}의 기본 프로필과 키·계정 공유`,
++    shareKeysHint: '구독·OAuth 로그인·API 키를 복사하지 않고 공유하므로 토큰 갱신이 서로를 무효화하지 않습니다. 해제하면 독립된 사본을 만듭니다.',
++    needsModel: '사용 가능한 모델 제공업체가 없어 자기소개를 건너뛰었습니다. 고급 설정에서 제공업체와 모델을 선택하세요.',
++    configureModel: '모델 설정', createEmpty: '빈 프로필 생성 — 기본 스킬 제외',
++    nameTakenHint: '이미 사용 중인 이름입니다. 기능 설정 전에 다른 이름을 정하세요.',
++    nameFirstHint: '먼저 봇 이름을 정하세요. 이 탭을 열면 임시 프로필이 생성되며 취소하면 폐기됩니다.',
++    newerDesktop: '스킬 설정에는 최신 Hermes Desktop이 필요합니다.',
++    newerGateway: '사용 기능 목록에는 최신 게이트웨이가 필요합니다. Hermes 업데이트 후 게이트웨이를 다시 시작하세요.',
++    emptySkillsHint: '빈 프로필 생성을 선택했으므로 기본 스킬을 설치하지 않습니다.',
++    defaultToolsHint: '전체 선택하거나 모두 해제하면 기본 도구 모음 동작을 유지합니다.',
++    catalog: '카탈로그', catalogInstalled: '카탈로그 · 설치됨',
++    mcpHint: '설정된 서버는 기본 프로필에서 복사하며 카탈로그 항목은 기본 MCP 목록입니다. API 키가 필요한 항목은 먼저 설정하며, 자격 증명은 키 공유 설정을 따릅니다.',
++    creating: '생성 중…', createBot: '봇 만들기', auto: '자동', autoHint: '자동 — 이름에 따라 결정',
++    unlock: '고정 해제', lockFace: '얼굴 고정', lockedHint: '얼굴이 고정돼 이름을 바꿔도 유지됩니다.',
++    unlockedHint: '이름에 따라 얼굴이 바뀝니다.',
++    noImageModel: '사용 가능한 이미지 모델이 없습니다. 방금 모델을 활성화하거나 Hermes를 업데이트했다면 Ctrl+K → 게이트웨이 다시 시작을 실행하세요.',
++    checkingImage: '이미지 기능 확인 중…', chooseImage: '이미지 선택…',
++    editDescription: (name, profile) => `${name} (${profile})의 외형과 역할입니다.`,
++    nameTaken: name => `“${name}” 에이전트가 이미 있습니다.`,
++    nameTakenOn: (name, target) => `${target}에 “${name}” 에이전트가 이미 있습니다.`,
++    currentConnection: name => `${name} (현재 연결)`,
++    remoteHint: target => `${target}에 에이전트를 생성하며 연결된 봇 목록에 표시합니다. 대화는 해당 컴퓨터로 전달됩니다.`,
++    cloneFromOn: target => `복제할 프로필 (${target})`,
++    catalogHint: source => `${source}의 카탈로그 — 선택하지 않은 스킬은 생성 후 비활성화됩니다.`,
++    sectionsFailed: sections => `일부 항목 처리 실패: ${sections}`, updated: name => `${name} 수정됨`,
++    created: name => `“${name}” 봇 생성됨`, createdOn: (name, target) => `${target}에 “${name}” 봇 생성됨`
++  },
++  roster: {
++    search: '봇·그룹 대화 검색', searchPlaceholder: '봇·그룹 대화 검색…', newBotOrGroup: '새 봇·그룹 대화',
++    groupChats: '그룹 대화', emptyTitle: '아직 봇이 없습니다', emptyDesc: '첫 봇을 만들어 보세요.',
++    noMatchQuery: query => `“${query}”에 해당하는 봇·그룹 대화가 없습니다.`,
++    noMatchQueryOn: (query, gateway) => `${gateway}에 “${query}”에 해당하는 봇·그룹 대화가 없습니다.`,
++    noMatchFiltersOn: gateway => `${gateway}에 이 조건과 일치하는 봇·그룹 대화가 없습니다.`,
++    noMatchFilters: '이 조건과 일치하는 봇·그룹 대화가 없습니다.', clearFilters: '필터 지우기',
++    allHidden: '모든 봇이 숨겨져 있습니다', allHiddenDesc: '봇은 계속 작동하며 대화 기록도 유지합니다.',
++    showHidden: '숨긴 봇 표시', noHiddenMatch: '조건과 일치하는 숨긴 봇이 없습니다.', hiddenFromRoster: '목록에서 숨겨짐',
++    pinned: '고정됨', needsAttention: '확인 필요', needsInput: '입력 필요', botsAndGroups: '봇과 그룹 대화',
++    botsOnly: '봇만', groupsOnly: '그룹 대화만', anyActivity: '모든 활동', activeNow: '현재 활동 중',
++    recentlyActive: '최근 활동', older: '이전 활동', gatewayRemoved: '게이트웨이 제거됨', onDemand: '필요할 때 실행',
++    ready: '준비됨', statusUnknown: '상태 불명', unavailable: '사용 불가', retryNow: '다시 시도',
++    rosterUnavailable: reason => `목록을 불러올 수 없습니다: ${reason}. 게이트웨이가 profiles.list를 지원하지 않으면 Hermes를 업데이트하고 다시 시작하세요.`,
++    waitingForGateway: '게이트웨이 연결을 기다리는 중… 원격 연결에는 몇 초가 걸릴 수 있으며 자동으로 다시 시도합니다.'
++  },
++  sections: {
++    newSection: '새 구역', newTitle: '새 구역', renameTitle: '구역 이름 변경', nameLabel: '구역 이름',
++    namePlaceholder: '예: 고객 관리', create: '만들기', rename: '이름 변경…', moveUp: '위로 이동', moveDown: '아래로 이동',
++    unassigned: '미분류', options: name => `${name} 구역 옵션`, headingTip: '봇을 여기에 놓으세요 · 두 번 클릭하면 이름 변경',
++    emptyHint: '봇을 여기에 끌어다 놓으세요', moveTo: '구역으로 이동', newSectionEllipsis: '새 구역…', removeFromSection: '구역에서 빼기',
++    deleted: (name, count) => count === 0 ? `“${name}” 삭제됨` : `“${name}” 삭제됨 — 봇 ${count}개가 미분류로 이동했습니다.`, undo: '실행 취소'
++  },
++  bot: {
++    newTitle: '새 봇', editTitle: '프로필 편집', editMenu: '편집…', helpPromptPlaceholder: '이 봇이 어떤 일을 도와줄까요?',
++    descriptionHint: '비워 두면 봇의 이름과 설명으로 자동 생성합니다.', newChatWith: '이 봇과 새 대화', openBotChat: '봇 대화 열기',
++    openingChat: '대화 여는 중…', pinToTop: '맨 위에 고정', unpin: '고정 해제', pinnedToast: name => `${name} 맨 위에 고정됨`,
++    unpinnedToast: name => `${name} 고정 해제됨`, hide: '숨기기', unhide: '다시 표시',
++    hiddenToast: name => `${name} 숨김 — 봇 목록 위의 눈 모양 버튼으로 숨긴 봇을 볼 수 있습니다.`,
++    unhiddenToast: name => `${name} 목록에 다시 표시됨`, groupsMenu: groups => `그룹: ${groups}…`, manageGroups: '그룹 관리…',
++    metadataLoadFailed: '봇 정보를 불러오지 못했습니다', loadFailed: '봇을 불러오지 못했습니다', groupsLoadFailed: '봇의 그룹을 불러오지 못했습니다',
++    thisDevice: '이 기기', attentionFallback: '확인 필요', attentionProviderAuth: '이 프로필에 다시 로그인하세요',
++    attentionQuota: '사용 한도 또는 잔액 소진', attentionMissingConfig: '제공업체가 설정되지 않았습니다 — hermes model을 실행하세요',
++    attentionBlocked: '봇이 차단됐습니다 — 마지막 메시지를 확인하세요', duplicate: '복제', duplicateFailed: '복제 실패',
++    deleteTitle: '봇과 프로필을 삭제할까요?', removeFromAllGroups: '모든 그룹에서 빼기',
++    createFirstHint: '봇 패널에서 새 봇을 누르세요.', createFailed: '프로필을 만들지 못했습니다', advanced: '고급 설정',
++    advancedHint: '고급 설정 — 모델·스킬·도구 모음·SOUL.md', advancedFailed: '고급 설정 실패',
++    openAnotherChatUnsupported: '다른 봇 대화를 열려면 Hermes Desktop을 업데이트하세요.',
++    remoteConnectionsUnsupported: '다른 연결의 봇과 대화하려면 Hermes Desktop을 업데이트하세요.',
++    openNeedsUpdateTitle: '이 봇은 이전 버전 Hermes에서 실행됩니다', openNeedsUpdateMessage: connectionLabel => `${connectionLabel}을 업데이트한 뒤 다시 시도하세요.`,
++    openUnreachableTitle: '봇이 실행되는 컴퓨터에 연결하지 못했습니다', openUnreachableMessage: '컴퓨터가 켜져 있고 연결돼 있는지 확인한 뒤 다시 시도하세요.',
++    openChatFailedTitle: botName => `${botName}의 대화를 열지 못했습니다`, openChatFailedMessage: '다시 시도하세요.',
++    openGateways: '게이트웨이 열기', chatEmpty: '메시지를 보내 대화를 시작하세요.', kickoff: '안녕, 자기소개해 줘!'
++  },
++  avatar: {
++    classicShapes: '기본 도형', blobFromName: '이름에서 만든 얼굴', unlockFollowsName: '고정 해제 — 이름에 따라 얼굴을 다시 바꿉니다',
++    randomize: '무작위', tabBot: '봇', tabGenerate: '생성', upload: '업로드', tabPet: '펫',
++    removeImage: '이미지 제거 — 도형 사용', removeBackToShape: '제거 — 도형 아바타로 돌아가기',
++    describePlaceholder: '아바타를 설명하세요…', describeHint: '비워 두면 이름·직책·설명과 에이전트 목록을 바탕으로 자동 생성합니다.',
++    matchTheName: '이름에 맞추기', pickPet: '이 봇의 프로필 사진으로 사용할 펫을 고르세요.',
++    petLoadFailed: '펫을 불러오지 못했습니다. 다른 펫을 선택하세요.', imageTooLarge: '이미지가 너무 큽니다 — 최대 15MB',
++    generationFailed: '아바타 생성 실패', savedLocally: '외형을 로컬에 저장했지만 원격 저장에 실패했습니다',
++    savedLocallyDescriptionFailed: '외형을 로컬에 저장했지만 설명 수정에 실패했습니다', generate: '생성', generating: '생성 중…'
++  },
++  group: {
++    newTitle: '새 그룹 대화', manageDesc: '봇은 여러 그룹 대화에 참여할 수 있습니다. 참여 정보는 모든 컴퓨터에 동기화됩니다.',
++    manageTitle: '그룹 관리', settingsTitle: '그룹 설정', settingsDesc: '그룹 이름이나 사진을 바꿉니다. 참여자와 대화 기록은 유지합니다.',
++    nameLabel: '그룹 이름', holdDetection: '중지 지시 감지', holdDetectionHint: '대화에서 지목한 봇을 다음에 다시 언급할 때까지 일시 정지할 수 있게 합니다.',
++    compressHistory: '대화 기록 압축', compressHistoryHint: member => `${member}의 숨겨진 그룹 대화 기록을 압축해 빈 응답 실패를 줄입니다.`,
++    compressing: member => `${member}의 그룹 대화 기록 압축 중…`,
++    compressDone: (member, compressed, detail) => `${member}의 그룹 세션 ${compressed}개 압축됨${detail ? ` — ${detail}` : ''}`,
++    compressNothing: member => `${member}의 그룹 세션이 아직 없어 압축할 내용이 없습니다.`,
++    compressFailed: (member, error) => `${member}의 그룹 대화 기록 압축 실패: ${error}`,
++    searchToAdd: '추가할 봇 검색', searchToAddPlaceholder: '추가할 봇 검색…', removeFromSelection: '선택에서 빼기',
++    disbandTitle: '그룹 대화를 해체할까요?', deleteTitle: '그룹 대화를 삭제할까요?', deleteAction: '삭제',
++    composerPlaceholder: '메시지를 보내세요 — 이 그룹의 모든 봇이 대화를 듣습니다.',
++    slashCommandsUnsupported: '그룹 대화에서는 슬래시 명령을 지원하지 않습니다. 개별 봇 대화에서 사용하세요.',
++    attachHint: '파일 첨부 — 응답하는 모든 봇이 볼 수 있습니다', newThread: '새 스레드', reply: '답글', replyInThread: '스레드에 답글',
++    replyInThreadPlaceholder: '스레드에 답글…', openThread: '스레드 열기', collapseThread: '스레드 접기', collapseThreadLabel: '이 스레드 접기',
++    activity: '활동', noActivityYet: '이번 응답에는 아직 활동이 없습니다.', showActivity: '그룹 활동 표시', hideActivity: '그룹 활동 숨기기',
++    stop: '중지', stopHint: '현재 실행 중지 — 응답 중인 봇을 중단하고 나머지는 일시 정지합니다',
++    allHeldStatus: count => `봇 ${count}개 모두 일시 정지됨`, heldMembersStatus: members => `일시 정지: ${members}`,
++    holdReleaseHint: '일시 정지된 봇을 언급하거나 @all resume을 보내 재개하세요.', needsYourInput: '그룹 대화의 봇이 입력을 기다립니다',
++    noMembersToSend: group => `${group}에 메시지를 받을 참여자가 없습니다. 봇을 추가하거나 참여자를 불러오는 중이라면 대화를 다시 여세요.`,
++    pictureGenerationFailed: '그룹 사진 생성 실패', nameTaken: name => `“${name}” 그룹이 이미 있습니다.`, memberCount: count => `봇 ${count}개`,
++    you: '나', availableCount: (available, total) => `${total}개 중 ${available}개 사용 가능`,
++    settingsHint: group => `그룹 설정 — ${group}의 이름이나 사진 변경`, settingsLabel: group => `${group} 그룹 설정`,
++    disbandHint: group => `${group} 그룹 대화 해체`, disbandLabel: group => `${group} 해체`, disbandAction: '해체',
++    disbanding: '해체 중…', disbandDone: '해체됨', disbanded: group => `“${group}” 해체됨`, disbandDescPrefix: '',
++    disbandDescSuffix: count => ` 그룹의 봇 ${count}개에서 그룹 소속을 제거하고 공유 대화 기록을 지웁니다. 봇 자체와 봇별 그룹 세션은 유지합니다.`,
++    stopped: group => `${group} 중지됨 — 재개할 때까지 남은 응답은 보류됩니다`, removeAttachment: '첨부 제거', threadFallback: '스레드',
++    replyCount: replies => `답글 ${replies}개`, dropToThread: '놓아서 스레드 답글에 첨부',
++    dropToRoom: '놓아서 첨부 — 응답하는 모든 봇이 볼 수 있습니다', waitingForAnswer: '답변 기다리는 중…',
++    memberThinking: name => `${name} 생각 중…`, roomWorking: '그룹 작업 중…', messageRoom: group => `${group}에 메시지 보내기`,
++    newThreadPlaceholder: group => `${group}에 새 스레드… @이름으로 지목하고 @everyone으로 모두에게 보낼 수 있습니다.`,
++    everyoneMeta: '그룹의 모든 봇', commandApproval: '명령 실행 승인', answerFailed: (handle, error) => `@${handle}에게 답변 전송 실패: ${error}`,
++    wantsToRunCommand: handle => `@${handle}의 명령 실행 요청:`, asks: handle => `@${handle}의 질문:`, answerTo: member => `@${member}에게 답변`
++  },
++  tools: {
++    installHint: name => `“${name}”을 설치하고 위 목록에 추가하세요`, installed: name => `“${name}” 스킬 설치됨`,
++    installFailed: name => `“${name}” 설치 실패`, searchHint: '커뮤니티와 주요 출처 검색 중 — 약 10초 걸릴 수 있습니다…',
++    resizeHint: '모서리를 끌어 크기를 조절하세요.', addServerFailed: '서버를 추가하지 못했습니다', noTarget: '대상 프로필이 없습니다',
++    setKeyFailed: key => `${key} 설정 실패`, configured: name => `${name} 설정됨`, authenticated: name => `${name} 인증됨`,
++    testFailed: '설정 후 서버 연결 확인 실패', completeSignIn: '브라우저에서 로그인을 완료하세요…',
++    needsSetup: keys => `설정 필요 (${keys}) — 앱 내 설정을 사용하려면 게이트웨이를 다시 시작하세요`, setUpDone: '설정 완료 ✓',
++    saveTest: '저장 후 연결 확인', authorizing: '인증 중…', working: '작업 중…', setupFailed: '설정 실패', signIn: '로그인…', setUp: '설정…',
++    skillsHub: 'Hermes 스킬 허브', filterSkills: '스킬 필터…', searchHub: '허브 검색 — 커뮤니티와 주요 출처…',
++    noMcpServers: '설정 또는 카탈로그에 MCP 서버가 없습니다.'
++  },
++  screen: {
++    title: '화면', menu: '화면 열기', unsupportedTitle: '이 호스트는 봇 화면을 지원하지 않습니다',
++    unsupportedBody: '봇 화면은 Linux 게이트웨이에서 실행됩니다. 이 봇은 호스트의 자체 디스플레이를 사용합니다.',
++    notInstalledTitle: '화면 기능 패키지가 없습니다', notInstalledBody: '게이트웨이 호스트에 TigerVNC와 Xfce 기본 구성요소가 필요합니다. 호스트에서 실행하세요:',
++    installHint: '게이트웨이 호스트의 Hermes 사용자로 실행합니다. 필요한 관리자 암호는 Hermes를 통해 한 번 요청합니다.',
++    install: '호스트에 설치', installing: '설치 중…', installCancelled: '관리자 암호가 입력되지 않아 설치를 취소했습니다.',
++    installFailed: '설치 실패. 위 기록을 확인하거나 호스트에서 명령을 직접 실행하세요.',
++    noPackageManager: '게이트웨이 호스트에 지원되는 패키지 관리자 apt·dnf·pacman이 없습니다.', portalTitle: '화면', portalOpen: '열기',
++    heroStopped: '화면 꺼짐', heroNotInstalled: '이 호스트에 설치되지 않음', heroConnecting: '화면 확인 중…', heroStale: '마지막 화면 — 현재 연결 불가',
++    heroSuppressed: '다른 사용자가 조작 중일 때 숨김', heroOpenLive: '실시간 화면 열기', heroInstall: '설치', heroStart: '시작',
++    portalWatching: '실시간 · 봇 조작 중', portalYouControl: '실시간 · 내가 조작 중', portalOtherControls: '실시간 · 다른 사용자 조작 중',
++    portalStopped: '중지됨', portalNotInstalled: '호스트에 설치되지 않음', portalUnsupported: '이 호스트에서는 사용할 수 없음',
++    portalUnavailable: '화면 기능을 사용하려면 봇의 Hermes를 업데이트하세요', portalUnavailableManaged: '이 관리형 Hermes 버전은 아직 화면 기능을 지원하지 않습니다',
++    managedNotIncludedTitle: '이 봇에는 화면 기능이 포함되지 않습니다',
++    managedNotIncludedBody: 'Hermes Cloud는 메모리가 8GB 이상인 봇에 화면 기능을 제공합니다. 더 작은 봇에는 설치할 수 없습니다.',
++    unavailableTitle: '화면 기능에는 최신 Hermes가 필요합니다', autoOpenMenu: '봇이 화면을 사용할 때 자동으로 열기',
++    autoOpenOnToast: name => `${name}이 데스크톱을 사용하면 화면을 자동으로 엽니다`,
++    autoOpenOffToast: name => `${name}의 화면은 직접 열 때까지 닫혀 있습니다`, stoppedTitle: '화면 꺼짐',
++    stoppedBody: '봇의 데스크톱을 시작하면 작업을 지켜보고 필요할 때 직접 조작할 수 있습니다.',
++    placementSandbox: backend => `화면은 터미널과 같은 ${backend} 샌드박스 안에서 실행됩니다`,
++    imageSwitchTitle: '새 샌드박스 이미지 사용 가능',
++    imageSwitchBody: (current, target) => `현재 샌드박스는 데스크톱이 없는 ${current}입니다. ${target}으로 바꾸면 다음 터미널 사용 시 컨테이너를 다시 만듭니다. /root와 /workspace의 파일은 이 컴퓨터에 유지하며 컨테이너 내부 패키지는 필요할 때 다시 설치합니다.`,
++    imageSwitchApprove: '이미지 변경', imageSwitchKeep: '현재 이미지 유지', start: '화면 시작', attaching: '화면 연결 중…', streamLost: '화면 연결 종료됨',
++    reconnect: '다시 연결', takeOver: '직접 조작', handBack: '조작권 반환', handBackForce: '조작권 강제 반환',
++    handBackForceHint: '새로고침 등으로 연결이 끊긴 사용자의 조작권을 해제합니다.',
++    openNeedsUpdate: '봇 화면을 열려면 Hermes Desktop을 업데이트하세요.', youControl: '내가 조작 중', otherControls: '다른 사용자 조작 중',
++    agentControls: '봇 조작 중', controlTaken: '다른 사용자가 조작권을 가져갔습니다. 지금은 보기만 가능합니다.'
++  },
++  cron: {
++    untitled: '이름 없는 작업', nameNul: '작업 이름에 NUL 문자 U+0000을 넣을 수 없습니다.',
++    instructionNul: '작업 지시에 NUL 문자 U+0000을 넣을 수 없습니다.', minutesFromNow: '분 후', hoursFromNow: '시간 후', daysFromNow: '일 후',
++    stopAfter: '종료 횟수', runsHint: '회 실행 — 비우면 계속 반복', detailDescription: '작업 내용과 다음 실행 시각입니다.', status: '상태',
++    active: '활성', paused: '일시 정지', schedule: '일정', rawSchedule: '일정 원문', repeat: '반복', nextRun: '다음 실행', overdueSince: '실행 지연 시작',
++    lastRun: '최근 실행', lastResult: '최근 결과', workdir: '작업 폴더', succeeded: '성공', failed: '실패', deliveryFailed: '실행됐지만 결과 전송 실패',
++    blockedConfig: '설정 때문에 차단됨 — 실행되지 않음', legacyUnsafe: '보안을 위해 중지된 이전 작업입니다. 삭제 후 다시 만들어 실행하세요.',
++    filterHint: '이 프로필에 예약 작업이 있지만 이 봇에 연결된 항목은 없습니다. 작업 이름을 “[bot:<name>] …”으로 지정하거나 아래 예약 작업에서 확인하세요.',
++    needsRosterFirst: '먼저 이 봇이 목록에 나타나야 합니다.', staleNotice: '예약 작업을 새로 불러오지 못해 이전 목록을 표시합니다.',
++    readFailure: '읽기에 실패했을 뿐 작업을 삭제한 것은 아닙니다.', createDesc: bot => `${bot}이 일정에 따라 반복하는 작업입니다. 실행 결과는 해당 봇의 대화 기록에 저장됩니다.`,
++    instruction: '작업 지시', whenToRun: '실행 시각', dayOfMonth: '매월 실행일', sendResultsTo: '결과 전송 위치', runHistoryOnly: '실행 기록만 저장',
++    botChatTarget: bot => `${bot}의 대화 — 봇이 응답합니다`, continuity: '연속 실행 — 이전 실행 결과를 참고해 중복을 피하고 작업을 이어갑니다',
++    onceIn: when => `한 번 (${when})`, everyNDays: days => `${days}일마다`, everyNHours: hours => `${hours}시간마다`, everyNMinutes: minutes => `${minutes}분마다`,
++    freqOnce: '한 번, 지정 시간 후…', freqHourly: '매시간', freqDaily: '매일', freqWeekdays: '평일', freqWeekly: '매주', freqMonthly: '매월',
++    freqInterval: '간격 지정', freqAdvanced: '고급…', unitMinutes: '분', unitHours: '시간', unitDays: '일',
++    runsOnce: (count, unit) => `${count}${unit} 후 한 번 실행`, runsHourly: '매시간 정각 실행', runsDaily: time => `매일 ${time} 실행`,
++    runsWeekdays: time => `월요일부터 금요일까지 ${time} 실행`, runsWeekly: (day, time) => `매주 ${day} ${time} 실행`,
++    runsMonthly: (day, time) => `매월 ${day}일 ${time} 실행`, runsInterval: (count, unit) => `${count}${unit}마다 실행`,
++    runsRaw: '일정 원문 — every Nm/Nh/Nd 또는 5개 필드 cron', timesTotal: count => `, 총 ${count}회`
++  }
++}
+diff --git a/apps/desktop/src/plugins/hermes-bots/README.md b/apps/desktop/src/plugins/hermes-bots/README.md
+new file mode 100644
+index 0000000000..231d3fc7b4
+--- /dev/null
++++ b/apps/desktop/src/plugins/hermes-bots/README.md
+@@ -0,0 +1,13 @@
++# Hermes Bots 그룹방 구현 안내
++
++용도: 기존 Hermes Desktop 봇 목록·공유 그룹방·입력창·그룹 모델 선택의 수정 위치를 안내합니다.
++
++- `canonical-group-registry.tsx`, `roster-pane.tsx`: 연결 게이트웨이의 기존 방을 조회하고 소유 프로필·room_id로 엽니다. 공유 서버 목록의 같은 방은 중복 표시하지 않습니다.
++- `canonical-group-workspace.tsx`: 기존 방 기록·활동 표시·전송과 그룹 전체 모델 선택 화면입니다. 기존 `ModelPicker`와 `GroupMentionInput`을 재사용합니다. Enter 전송, Shift+Enter 줄바꿈, 한글 조합 중 전송 방지를 지원합니다.
++- `model-picker.tsx`: 해당 게이트웨이의 기존 `model.options` 목록을 사용합니다. 그룹에서는 `include_unconfigured=false`로 설정된 제공자만 표시하고, 고급 편집기의 전체 목록과 캐시를 구분합니다. 특정 모델을 하드코딩하지 않습니다. 그룹 선택은 명시적으로 적용할 때만 저장합니다.
++- API: `groups.list/state/log/send/model`은 기존 게이트웨이의 JSON-RPC 경로입니다. `groups.model`은 room_id, model, provider, request_id를 받으며 그룹 전체의 다음 응답 모델을 설정합니다. 개인 봇 프로필 설정은 수정하지 않습니다.
++- 서버 소유 코드: `gateway/session_group_controls.py`, `session_hosted_service.py`, `session_hosted_rpc.py`, `session_hosted_transport.py`. 방 모델은 기존 state_meta에 저장하고 OS 인증을 거친 그룹 멤버 경로를 통해 기존 세션 모델 변경 기능으로 적용합니다. 기존 모델 변경 보호 검사는 유지합니다.
++- 계약: `tui_gateway/contracts/canonical.py`, `groups_bot_relay.py`. 번역은 `canonical-group-locales.ts`, `ko.ts`에 있습니다.
++- 확인: 기존 입력창·IME·방 다시 열기 테스트, TypeScript 검사와 기존 `apps/desktop`의 `npm run pack`을 사용합니다. 빌드와 실제 앱 적용은 별도 단계입니다. 실제 API 검증 결과·적용 상태는 기존 언어팩 README에 기록합니다.
++
++서버 원본 설치 경로는 `~/.hermes/hermes-agent`이며, Mac 실행 앱은 `apps/desktop/release/mac-arm64/Hermes.app`입니다. 클라이언트 입력창 수정은 각 기기의 앱 빌드에 반영해야 합니다.

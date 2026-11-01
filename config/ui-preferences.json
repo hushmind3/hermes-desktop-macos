@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "generation": "f4670389d46ceb6c",
+  "revision": 42,
+  "values": {
+    "hermes.desktop.autoSpeakReplies": "false",
+    "hermes.desktop.toolView.technical": "true",
+    "hermes.desktop.tips.last.v1": "profiles",
+    "hermes.desktop.tips.retired.v1": "[\"skills\"]",
+    "hermes.desktop.sidebarAgentsGrouped.allProfiles": "true",
+    "hermes.desktop.tips.shownAt.v1": "{\"new-session\":1793102623656,\"skills\":1793128810346,\"messaging\":1793159725700,\"right-pane\":1793191666803,\"artifacts\":1793216467332,\"cron\":1793349720185,\"composer-mentions\":1793373488162,\"command-palette\":1793465266708,\"profiles\":1793486930942}",
+    "hermes.desktop.composerPopout.gesturesEnabled": "true",
+    "hermes.desktop.showAllProfiles": "false",
+    "hermes.desktop.model-presets": "{\"openai-codex::gpt-6.1-sol\":{\"effort\":\"high\",\"serviceTier\":\"normal\",\"fast\":false},\"openai-codex::gpt-6-luna\":{\"effort\":\"medium\",\"serviceTier\":\"normal\",\"fast\":false},\"openai-codex::gpt-6.1-sol-900k\":{\"effort\":\"medium\",\"serviceTier\":\"normal\",\"fast\":false},\"openai-codex::gpt-6-sol\":{\"effort\":\"high\",\"serviceTier\":\"normal\",\"fast\":false},\"openai-codex::gpt-6.1-terra\":{\"effort\":\"medium\",\"serviceTier\":\"normal\",\"fast\":false},\"llamacpp::Ornith-1.5-9B-Q4_K_M\":{\"effort\":\"none\",\"serviceTier\":\"normal\",\"fast\":false},\"openai-codex::gpt-6-luna-900k\":{\"effort\":\"medium\",\"serviceTier\":\"normal\",\"fast\":false},\"gemini::gemini-3.6-flash\":{\"effort\":\"none\",\"serviceTier\":\"normal\",\"fast\":false},\"freeapi::auto\":{\"effort\":\"medium\",\"serviceTier\":\"normal\",\"fast\":false},\"nous::ornith/ornith-1.5-122b:free\":{\"effort\":\"none\",\"serviceTier\":\"normal\",\"fast\":false},\"nous::reflection/beam-1.0-501b-a23b:free\":{\"effort\":\"minimal\",\"serviceTier\":\"normal\",\"fast\":false}}",
+    "hermes.desktop.tips.next.v1": "1793508530942",
+    "hermes.desktop.favorite-models": "[\"openai-codex::gpt-6-luna\",\"gemini::gemini-3.6-flash\",\"gemini::gemini-3.8-flash\"]",
+    "hermes-desktop-theme-v2": "tide",
+    "hermes-desktop-mode-v1": "light",
+    "hermes.desktop.panesFlipped": "false"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "chat_id": "-1003904635306",
+  "room_id": "telegram-1003904635306",
+  "owner_id": "7094091589",
+  "ingress_profile": "sebas",
+  "members": [
+    "shalltear",
+    "aura",
+    "albedo",
+    "pandora-actor",
+    "cocytus",
+    "demiurge"
+  ],
+  "cursor": 0,
+  "human_only_chat_ids": [
+    "-1003906693915"
+  ]
+}

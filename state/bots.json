@@ -1,0 +1,56 @@
+[
+  {
+    "profile": "ainz",
+    "model": "deepseek-v4.1-flash",
+    "provider": "opencode-go",
+    "reasoning": "none"
+  },
+  {
+    "profile": "albedo",
+    "model": "deepseek-v4.1-flash",
+    "provider": "opencode-go",
+    "reasoning": "none"
+  },
+  {
+    "profile": "aura",
+    "model": "deepseek-v4.1-flash",
+    "provider": "opencode-go",
+    "reasoning": "none"
+  },
+  {
+    "profile": "cocytus",
+    "model": "deepseek-v4.1-flash",
+    "provider": "opencode-go",
+    "reasoning": "none"
+  },
+  {
+    "profile": "demiurge",
+    "model": "deepseek-v4.1-flash",
+    "provider": "opencode-go",
+    "reasoning": "none"
+  },
+  {
+    "profile": "mare",
+    "model": "deepseek-v4.1-flash",
+    "provider": "opencode-go",
+    "reasoning": "none"
+  },
+  {
+    "profile": "pandora-actor",
+    "model": "deepseek-v4.1-flash",
+    "provider": "opencode-go",
+    "reasoning": "none"
+  },
+  {
+    "profile": "sebas",
+    "model": "deepseek-v4.1-flash",
+    "provider": "opencode-go",
+    "reasoning": "none"
+  },
+  {
+    "profile": "shalltear",
+    "model": "deepseek-v4.1-flash",
+    "provider": "opencode-go",
+    "reasoning": "none"
+  }
+]

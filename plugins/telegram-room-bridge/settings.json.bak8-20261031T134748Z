@@ -1,0 +1,53 @@
+{
+  "enabled": true,
+  "chat_id": "-1003904635306",
+  "room_id": "telegram-1003904635306-tgfix-20261031",
+  "owner_id": "7094091589",
+  "ingress_profile": "albedo",
+  "members": [
+    "demiurge",
+    "albedo",
+    "aura",
+    "shalltear",
+    "mare"
+  ],
+  "cursor": 0,
+  "human_only_chat_ids": [
+    "-1003906693915"
+  ],
+  "state_suffix": "-swap1",
+  "additional_rooms": [
+    {
+      "enabled": true,
+      "chat_id": "-1004310683072",
+      "room_id": "telegram-5387784204-tgfix-20261031",
+      "owner_id": "7094091589",
+      "ingress_profile": "sebas",
+      "members": [
+        "pandora-actor",
+        "cocytus",
+        "ainz",
+        "sebas"
+      ],
+      "cursor": 0,
+      "state_suffix": "-swap2"
+    },
+    {
+      "enabled": true,
+      "chat_id": "-1003906693915",
+      "room_id": "telegram-1003906693915-tg-20261031",
+      "owner_id": "7094091589",
+      "ingress_profile": "sebas",
+      "members": [
+        "shalltear",
+        "aura",
+        "albedo",
+        "pandora-actor",
+        "cocytus",
+        "demiurge"
+      ],
+      "cursor": 0,
+      "state_suffix": "-swap3"
+    }
+  ]
+}

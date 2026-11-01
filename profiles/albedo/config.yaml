@@ -1,0 +1,54 @@
+model:
+  default: deepseek-v4.1-flash
+  provider: opencode-go
+  base_url: https://opencode.ai/zen/go/v1
+  api_mode: chat_completions
+fallback_providers:
+  - provider: nous
+    model: stepfun/step-3.7-flash:free
+    base_url: https://inference-api.nousresearch.com/v1
+  - provider: nous
+    model: upstage/solar-mini4:free
+    base_url: https://inference-api.nousresearch.com/v1
+_config_version: 52
+agent:
+  reasoning_effort: none
+telegram:
+  require_mention: false
+  mention_patterns: "알베도"
+  exclusive_bot_mentions: true
+  bots_require_mention: true
+  reply_to_mode: 'off'
+telemetry:
+  shared_metrics:
+    enabled: false
+    send: false
+    offer_version: 2
+approvals:
+  mode: 'off'
+  destructive_slash_confirm: false
+display:
+  language: ko
+platforms:
+  telegram:
+    enabled: true
+    home_channel:
+      platform: telegram
+      chat_id: '-1003904635306'
+      name: "헤르메스 오버로드(Overlord)의 나자릭 지하대분묘 조직"
+      user_id: '7094091589'
+    reply_to_mode: 'off'
+plugins:
+  enabled:
+    - telegram-room-bridge
+  disabled: []
+web:
+  keyless_fallback: true
+  keyless_rescue: true
+  search_backend: nous
+  extract_backend: nous
+toolsets:
+  - hermes-cli
+tools:
+  tool_search:
+    search_default_limit: 20

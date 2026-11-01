@@ -1,0 +1,35 @@
+{
+  "enabled": true,
+  "chat_id": "-1003904635306",
+  "room_id": "telegram-1003904635306",
+  "owner_id": "7094091589",
+  "ingress_profile": "sebas",
+  "members": [
+    "shalltear",
+    "aura",
+    "albedo",
+    "pandora-actor",
+    "cocytus",
+    "demiurge"
+  ],
+  "cursor": 0,
+  "human_only_chat_ids": [
+    "-1003906693915"
+  ],
+  "additional_rooms": [
+    {
+      "enabled": true,
+      "chat_id": "-5387784204",
+      "room_id": "telegram-5387784204",
+      "owner_id": "7094091589",
+      "ingress_profile": "sebas",
+      "members": [
+        "mare",
+        "sebas",
+        "ainz"
+      ],
+      "cursor": 0,
+      "state_suffix": "-room2"
+    }
+  ]
+}

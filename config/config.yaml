@@ -1,0 +1,91 @@
+kanban:
+  auto_decompose: true
+  orchestrator_profile: albedo
+_config_version: 52
+gateway:
+  multiplex_profiles: true
+model:
+  default: deepseek-v4.1-flash
+  api_mode: chat_completions
+  provider: opencode-go
+  base_url: https://opencode.ai/zen/go/v1
+fallback_providers:
+  - provider: nous
+    model: stepfun/step-3.7-flash:free
+    base_url: https://inference-api.nousresearch.com/v1
+  - provider: nous
+    model: upstage/solar-mini4:free
+    base_url: https://inference-api.nousresearch.com/v1
+moa:
+  presets:
+    default:
+      reference_models:
+        - provider: nous
+          model: reflection/beam-1.0-501b-a23b:free
+          enabled: true
+        - provider: nous
+          model: ornith/ornith-1.5-122b:free
+          enabled: true
+        - provider: nous
+          model: stepfun/step-3.7-flash:free
+          enabled: true
+      degraded_reference_policy: loud
+      fanout: user_turn
+      aggregator:
+        provider: nous
+        model: upstage/solar-mini4:free
+  reference_models:
+    - provider: nous
+      model: reflection/beam-1.0-501b-a23b:free
+      enabled: true
+    - provider: nous
+      model: ornith/ornith-1.5-122b:free
+      enabled: true
+    - provider: nous
+      model: stepfun/step-3.7-flash:free
+      enabled: true
+  aggregator:
+    provider: nous
+    model: upstage/solar-mini4:free
+  degraded_reference_policy: loud
+  fanout: user_turn
+  enabled: true
+agent:
+  reasoning_effort: none
+onboarding:
+  seen:
+    busy_input_prompt: true
+display:
+  language: ko
+dashboard:
+  basic_auth:
+    username: hushmind
+    password_hash: scrypt$16384$8$1$FLesLbJaNaLwG/YuJuXvtA==$kw54NcQNCmTTSXpHnaMBuSZXOZSbHscmv1ii+sBnHtI=
+    secret: SEHzNVrSJ1MnuamCUswWhRAqib5o1enbQVVflxS30KjD1TorHUgMHab9QPEBGfK9
+  public_url: http://100.111.123.12:9119
+approvals:
+  mode: 'off'
+telemetry:
+  shared_metrics:
+    enabled: true
+    send: true
+    offer_version: 2
+local_runtime:
+  enabled: true
+hosted_rooms:
+  owner_aliases:
+    auth:v1:["basic","","hushmind"]: uid:501
+  shared_directory: true
+update:
+  installs:
+    83a6a0450715aee9:
+      path: /Users/gim-yeonsu/.hermes/hermes-agent
+      channel: main
+tts:
+  provider: openai
+web:
+  search_backend: exa
+  extract_backend: firecrawl
+memory:
+  memory_char_limit: 2000
+  provider: ''

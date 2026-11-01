@@ -1,0 +1,14 @@
+{
+  "hermes-newswire": {
+    "catalog": {
+      "name": "hermes-newswire",
+      "pin": "e6b438ee617f9b3c1ef9fe008cce2b7291abd949",
+      "repo": "https://github.com/tony-simons-aiowa/hermes-newswire",
+      "sha": "e6b438ee617f9b3c1ef9fe008cce2b7291abd949",
+      "tier": "community"
+    },
+    "pinned": true,
+    "revision": "e6b438ee617f9b3c1ef9fe008cce2b7291abd949",
+    "source": "https://github.com/tony-simons-aiowa/hermes-newswire"
+  }
+}

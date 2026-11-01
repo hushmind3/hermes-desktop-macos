@@ -1,0 +1,5 @@
+The demiurge profile's personal Telegram bot is @yeonsu_demiurge_bot; its configured home DM is 7094091589. Bot credentials are stored in the profile's .env; do not duplicate credential values in memory.
+§
+Hermes background self-improvement review stages proposed memory deletions for approval; they remain unapplied until approved via `/memory pending`. This is separate from `approvals.mode`; disabling automatic background review also stops its automatic learning.
+§
+Hermes profiles are isolated per bot: /Users/gim-yeonsu/.hermes/profiles/ contains ainz, albedo, aura, cocytus, default, demiurge, mare, pandora-actor, sebas, shalltear (my active profile). Each bot's files are invisible to other sessions — e.g. I wrote cache/scratch files in shalltear's cache but cocytus's session could not see them. Cross-bot file coordination needs a shared path or explicit path handoff.

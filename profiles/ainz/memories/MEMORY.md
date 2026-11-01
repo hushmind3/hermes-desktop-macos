@@ -1,0 +1,1 @@
+The demiurge profile's personal Telegram bot is @yeonsu_demiurge_bot; its configured home DM is 7094091589. Bot credentials are stored in the profile's .env; do not duplicate credential values in memory.
