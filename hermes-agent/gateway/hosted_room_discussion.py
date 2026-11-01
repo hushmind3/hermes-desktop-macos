@@ -568,7 +568,7 @@ def _truncate_utf8_text(value: Any, *, max_bytes: int, suffix: str = "") -> str:
 
 def _build_prompt(
     *, room: DiscussionRoom, member: DiscussionMember, messages: Sequence[_ValidatedEvent], watermark: int,
-    seen_through_seq: int, reply_required: bool = False) -> str:
+    seen_through_seq: int, reply_required: bool = False, round_index: int = 0) -> str:
     delta = [event for event in messages if watermark < event.seq <= seen_through_seq][- MAX_DISCUSSION_DELTA_LINES:]
     peers = ", ".join(f"@{candidate.handle}" for candidate in room.members if candidate.member_id != member.member_id)
     opening = [
@@ -576,11 +576,14 @@ def _build_prompt(
         f"with {peers or 'no other members'} and the user.", "",
         "New messages in this thread since your last turn (oldest first):"]
     participation = [
+        "- The user opened this turn. Reply with a visible answer, result, or concrete blocker.",
+        '- Do not return "(pass)". Even if you have nothing new, acknowledge the message and answer briefly.',
+    ] if round_index == 0 else [
+        "- Reply with one conversational message only when you have something new worth adding.",
+        '- If you have nothing new to add, reply with exactly "(pass)".'] if not reply_required else [
         "- The user directly addressed you. Reply with your answer, result, or concrete blocker.",
         '- Do not return "(pass)". If you cannot proceed, explain why and what you need from the user.',
-    ] if reply_required else [
-        "- Reply with one conversational message only when you have something new worth adding.",
-        '- If you have nothing new to add, reply with exactly "(pass)".']
+    ]
     rules = [
         "", "Rules for this Discussion:", *participation,
         "- Mention a teammate by handle to pull them into the next round; do not repeat points already made.",
@@ -757,7 +760,8 @@ def plan_next_task(
             prompt = _build_prompt(
                 room=room, member=member, messages=thread_messages, watermark=watermark,
                 seen_through_seq=seen_through_seq,
-                reply_required=_requires_direct_reply(room, discussion, member, round_index))
+                reply_required=_requires_direct_reply(room, discussion, member, round_index),
+                round_index=round_index)
             return decide("task", "member_turn", task=_make_task_plan(
                 room=room, discussion_event=discussion, member=member, member_index=member_index,
                 round_index=round_index, seen_through_seq=seen_through_seq, prompt=prompt, attachments=attachments,
